@@ -57,6 +57,12 @@ h2{font-size:15px;margin:0 0 10px}
 @keyframes p{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}100%{box-shadow:0 0 0 18px rgba(34,197,94,0)}}
 @keyframes flash{0%{transform:scale(.97);opacity:.4}100%{transform:none;opacity:1}}
 .new{animation:flash .35s ease-out}
+.scan{position:fixed;inset:0;background:#000;z-index:30;display:none;flex-direction:column}
+.scan.open{display:flex}
+.scan video{flex:1;width:100%;object-fit:cover;min-height:0}
+.scan .guide{position:absolute;left:8%;right:8%;top:36%;height:20%;border:3px solid #22c55e;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
+.scan .st{position:absolute;left:0;right:0;top:calc(36% - 56px);text-align:center;color:#fff;font-weight:700;font-size:20px;text-shadow:0 1px 3px #000;padding:0 12px}
+.scan .bar{display:flex;gap:10px;padding:14px 14px 24px;background:#0b1222}
 </style>
 </head>
 <body>
@@ -91,8 +97,8 @@ h2{font-size:15px;margin:0 0 10px}
 <section class="tab" id="t-gate">
   <div id="gateRes"><div class="card wait"><span class="pulse"></span><br>Esperando vehículos en el portón…<br><span class="muted" id="lastSeen"></span></div></div>
   <div class="card">
-    <label style="margin-top:0">Escribir tablilla a mano</label>
-    <div class="row"><input id="manual" class="plateIn" placeholder="ABC123" autocomplete="off" maxlength="10"><button class="btn" style="flex:0 0 auto" id="buscar">Buscar</button></div>
+    <label style="margin-top:0">Escribir la tablilla o leerla con la cámara 📷</label>
+    <div class="row"><input id="manual" class="plateIn" placeholder="ABC123" autocomplete="off" maxlength="10"><button class="btn" style="flex:0 0 auto" id="buscar">Buscar</button><button class="btn sec" style="flex:0 0 auto;font-size:20px" id="gateCam" aria-label="Leer con la cámara">📷</button></div>
   </div>
   <div class="card"><h2>Últimas lecturas de la cámara</h2><div id="readList"><div class="empty">Sin lecturas todavía</div></div></div>
 </section>
@@ -101,8 +107,8 @@ h2{font-size:15px;margin:0 0 10px}
 <section class="tab" id="t-ronda">
   <div class="card">
     <h2>🔦 Ronda: ¿de quién es este vehículo?</h2>
-    <div class="row"><input id="rondaIn" class="plateIn" placeholder="ABC123" autocomplete="off" maxlength="10"><button class="btn" style="flex:0 0 auto" id="rondaBuscar">Buscar</button></div>
-    <p class="muted" style="margin:8px 0 0">Escribe la tablilla del carro mal estacionado para ver la casa y llamar al dueño.</p>
+    <div class="row"><input id="rondaIn" class="plateIn" placeholder="ABC123" autocomplete="off" maxlength="10"><button class="btn" style="flex:0 0 auto" id="rondaBuscar">Buscar</button><button class="btn sec" style="flex:0 0 auto;font-size:20px" id="rondaCam" aria-label="Leer con la cámara">📷</button></div>
+    <p class="muted" style="margin:8px 0 0">Escribe la tablilla o toca 📷 para leerla con la cámara. Verás la casa y podrás llamar al dueño.</p>
   </div>
   <div id="rondaRes"></div>
 </section>
@@ -146,6 +152,12 @@ h2{font-size:15px;margin:0 0 10px}
 
 <!-- ====== MIS VISITAS (inquilino) ====== -->
 <section class="tab" id="t-vis">
+  <div id="arrivals"></div>
+  <div class="card" id="notifCard">
+    <h2>🔔 Avisos de llegada</h2>
+    <p class="muted" style="margin:0 0 8px">Cuando el guardia registre la entrada de tu visita, te sale un aviso en esta app.</p>
+    <button class="btn sec" style="width:100%" id="notifBtn">Activar notificaciones</button>
+  </div>
   <div class="card" id="newPass">
     <h2>➕ Nueva visita</h2>
     <label>Nombre del visitante *</label><input id="v_nombre" placeholder="Ej. María Rivera">
@@ -193,6 +205,8 @@ h2{font-size:15px;margin:0 0 10px}
 
 <nav id="nav" class="hide"></nav>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="scan" id="scan"><video id="scanV" playsinline autoplay muted></video><div class="guide"></div><div class="st" id="scanSt">Apunta a la tablilla</div>
+<div class="bar"><button class="btn sec" style="flex:1" id="scanX">Cancelar</button><button class="btn" style="flex:1" id="scanCap">📸 Capturar</button></div></div>
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -304,7 +318,10 @@ function start(){
     buildNav(isAdmin()?['gate','ronda','code','veh','log','users','set']:['gate','ronda','code','log','set']);
   } else {
     $('#ttl').textContent='🎟️ Pases de Visita';
-    dataUnsubs.push(onSnapshot(query(collection(db,'pases'),where('uid','==',uid)),s=>{myPasses=s.docs.map(d=>({code:d.id,...d.data()})).sort((a,b)=>b.creado-a.creado);renderMine()},onErr));
+    const usosPrev={};
+    dataUnsubs.push(onSnapshot(query(collection(db,'pases'),where('uid','==',uid)),s=>{
+      s.docChanges().forEach(ch=>{const d=ch.doc.data();if(ch.type==='modified'&&(d.usos||0)>(usosPrev[ch.doc.id]||0))notifyArrival(d);usosPrev[ch.doc.id]=d.usos||0});
+      myPasses=s.docs.map(d=>({code:d.id,...d.data()})).sort((a,b)=>b.creado-a.creado);renderMine()},onErr));
     dataUnsubs.push(onSnapshot(query(collection(db,'vehiculos'),where('uid','==',uid)),s=>{myVehs=s.docs.map(d=>({id:d.id,...d.data()}));renderMyVeh()},onErr));
     buildNav(['vis','set']);
   }
@@ -436,8 +453,18 @@ function renderPassCard(x,target,r){
   beep(st==='activo'?'vis':'bad');
   if(st!=='activo')return;
   const base={tablilla:norm(x.tablilla||(r&&r.placa)),nombre:x.visitante,unidad:host.unidad||'',codigo:x.code,anfitrion:host.nombre||'',lectura:r&&!r.manual?r.id:null};
-  $('#pIn').onclick=async()=>{$('#pIn').disabled=true;try{await updateDoc(doc(db,'pases',x.code),{usos:(x.usos||0)+1,ultimaEntrada:Date.now()})}catch(e){}await addLog({tipo:'entrada',...base});$(target).innerHTML='';$('#codeIn').value='';if(target==='#gateRes')resetGate()};
+  $('#pIn').onclick=async()=>{$('#pIn').disabled=true;try{await updateDoc(doc(db,'pases',x.code),{usos:(x.usos||0)+1,ultimaEntrada:Date.now()})}catch(e){}await addLog({tipo:'entrada',...base});$('#codeIn').value='';hostNotice(target,host,x)};
   $('#pOut').onclick=async()=>{await addLog({tipo:'salida',...base});$(target).innerHTML='';$('#codeIn').value='';if(target==='#gateRes')resetGate()};
+}
+function hostNotice(target,host,x){
+  const tel=telHref(host.telefono);
+  if(!tel){$(target).innerHTML='';if(target==='#gateRes')resetGate();return}
+  const hora=new Date().toLocaleTimeString('es-PR',{hour:'numeric',minute:'2-digit'});
+  const msg=`Hola ${host.nombre||''}, le informa la seguridad de ${config.lugar||'la urbanización'}: su visita ${x.visitante} acaba de entrar (${hora}).`;
+  $(target).innerHTML=`<div class="card new"><p style="margin:0 0 10px;font-size:16px">✅ Entrada registrada. El residente ya ve el aviso en su app. ¿Quieres avisarle también por WhatsApp?</p>
+    <a class="btn wa big" target="_blank" rel="noopener" href="https://wa.me/${tel.replace('tel:+','')}?text=${encodeURIComponent(msg)}">💬 Avisar a ${esc(host.nombre||'residente')}</a>
+    <button class="btn sec" style="width:100%;margin-top:8px" id="hnClose">Listo</button></div>`;
+  $('#hnClose').onclick=()=>{$(target).innerHTML='';if(target==='#gateRes')resetGate()};
 }
 function renderActive(){
   const L=[...activePasses.entries()].filter(([c,p])=>passStatus(p)==='activo').sort((a,b)=>a[1].expira-b[1].expira);
@@ -490,6 +517,22 @@ function renderMine(){
 }
 setInterval(()=>{if($('#t-vis').classList.contains('act'))renderMine();if($('#t-code').classList.contains('act'))renderActive()},60000);
 
+/* ================= AVISO DE LLEGADA (inquilino) ================= */
+function notifState(){try{return 'Notification' in window?Notification.permission:'unsupported'}catch(e){return 'unsupported'}}
+function paintNotifBtn(){const st=notifState(),b=$('#notifBtn');if(!b)return;b.textContent=st==='granted'?'✅ Notificaciones activadas':st==='denied'?'Notificaciones bloqueadas en este navegador':st==='unsupported'?'Este navegador no muestra notificaciones: los avisos salen dentro de la app':'Activar notificaciones';b.disabled=st!=='default'}
+paintNotifBtn();
+$('#notifBtn').onclick=async()=>{try{await Notification.requestPermission()}catch(e){}paintNotifBtn()};
+function notifyArrival(p){
+  const hora=new Date(p.ultimaEntrada||Date.now()).toLocaleTimeString('es-PR',{hour:'numeric',minute:'2-digit'});
+  const txt=`${p.visitante} entró por el portón a las ${hora}.`;
+  const el=document.createElement('div');el.className='res ok new';
+  el.innerHTML=`<div class="bn" style="font-size:20px">🚗 Llegó tu visita</div><div class="bd"><p style="margin:0 0 10px;font-size:17px">${esc(txt)}</p><button class="btn sec sm" style="width:100%">Entendido</button></div>`;
+  el.querySelector('button').onclick=()=>el.remove();
+  $('#arrivals').prepend(el);
+  toast('🚗 '+txt);beep('vis');navigator.vibrate&&navigator.vibrate([150,80,150]);
+  if(notifState()==='granted'){try{new Notification('🚗 Llegó tu visita',{body:txt,tag:'llegada-'+(p.creado||'')})}catch(e){}}
+}
+
 /* ================= VEHÍCULOS DEL INQUILINO ================= */
 function renderMyVeh(){
   $('#myVehList').innerHTML=myVehs.length?myVehs.map(v=>`<div class="item"><div><span class="plate s">${esc(fmtPlate(v.id))}</span><small>${esc([v.marca,v.modelo,v.color].filter(Boolean).join(' · '))}</small></div><button class="btn sec sm" data-mvdel="${esc(v.id)}">Quitar</button></div>`).join(''):'<div class="empty" style="padding:10px 0">Aún no has registrado vehículos</div>';
@@ -537,6 +580,62 @@ function wireRonda(p,o){
   if(wa){const msg=`Hola ${o.nombre}, le escribe la seguridad de ${config.lugar||'la urbanización'}. Su vehículo tablilla ${fmtPlate(p)} necesita moverse porque está mal estacionado. Gracias.`;wa.href=`https://wa.me/${telHref(o.telefono).replace('tel:+','')}?text=${encodeURIComponent(msg)}`}
   $('#ronLog').onclick=()=>{addLog({tipo:'aviso',tablilla:p,nombre:o.nombre,unidad:o.unidad,nota:'Mal estacionado (ronda)'});$('#rondaRes').innerHTML='';$('#rondaIn').value=''};
 }
+
+/* ================= CÁMARA: leer tablilla ================= */
+let scanStream=null,scanTimer=null,scanBusy=false,scanCb=null,ocrWorker=null,scanVotes={};
+function loadTesseract(){return window.Tesseract?Promise.resolve():new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+async function getWorker(){if(ocrWorker)return ocrWorker;await loadTesseract();ocrWorker=await Tesseract.createWorker('eng');await ocrWorker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',tessedit_pageseg_mode:'7'});return ocrWorker}
+const L2N={O:'0',Q:'0',D:'0',I:'1',L:'1',Z:'2',S:'5',B:'8',G:'6',T:'7',A:'4'},N2L={'0':'O','1':'I','2':'Z','5':'S','8':'B','6':'G','7':'T','4':'A'};
+function plateFrom(txt){
+  const raw=norm(txt);if(raw.length<4)return null;
+  const known=[...vehicles.keys(),...[...activePasses.values()].map(p=>norm(p.tablilla)).filter(Boolean)];
+  let pr=null,ps=99;
+  for(let i=0;i+6<=raw.length;i++){const w=raw.slice(i,i+6);const c=[...w.slice(0,3)].map(ch=>N2L[ch]||ch).join('')+[...w.slice(3)].map(ch=>L2N[ch]||ch).join('');if(/^[A-Z]{3}\d{3}$/.test(c)){let sc=0;for(let j=0;j<6;j++)if(c[j]!==w[j])sc++;if(known.includes(c))sc-=10;if(sc<ps){ps=sc;pr=c}}}
+  if(pr)return{p:pr,known:known.includes(pr)};
+  let best=null,bd=9;for(const k of known){for(let i=0;i+k.length<=raw.length;i++){const d=dist(raw.slice(i,i+k.length),k);if(d<bd){bd=d;best=k}}}
+  if(best&&bd<=1)return{p:best,known:true};
+  return raw.length<=8?{p:raw,known:false}:null;
+}
+async function openScanner(cb){
+  scanCb=cb;scanVotes={};$('#scan').classList.add('open');$('#scanSt').textContent='Abriendo cámara…';
+  try{scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});$('#scanV').srcObject=scanStream;await $('#scanV').play()}
+  catch(e){closeScanner();toast('No se pudo abrir la cámara. Escribe la tablilla.');return}
+  $('#scanSt').textContent='Cargando lector…';
+  try{await getWorker()}catch(e){closeScanner();toast('No se pudo cargar el lector. Escribe la tablilla.');return}
+  if(!scanStream)return;
+  $('#scanSt').textContent='Pon la tablilla dentro del cuadro verde';
+  scanTimer=setInterval(()=>scanFrame(false),900);
+}
+function closeScanner(){clearInterval(scanTimer);scanTimer=null;if(scanStream)scanStream.getTracks().forEach(t=>t.stop());scanStream=null;$('#scan').classList.remove('open')}
+async function scanFrame(manual){
+  if(scanBusy||!scanStream||!ocrWorker)return;scanBusy=true;
+  try{
+    const v=$('#scanV'),vw=v.videoWidth,vh=v.videoHeight;
+    if(vw){
+      const r=v.getBoundingClientRect(),g=document.querySelector('#scan .guide').getBoundingClientRect();
+      const sc=Math.max(r.width/vw,r.height/vh),ox=(r.width-vw*sc)/2,oy=(r.height-vh*sc)/2;
+      const sx=(g.left-r.left-ox)/sc,sy=(g.top-r.top-oy)/sc,sw=g.width/sc,sh=g.height/sc;
+      const H=140,W=Math.max(1,Math.round(sw*H/sh)),cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d');
+      cx.drawImage(v,sx,sy,sw,sh,0,0,W,H);
+      const im=cx.getImageData(0,0,W,H),d=im.data;let mn=255,mx=0;
+      for(let i=0;i<d.length;i+=4){const y=(d[i]*.3+d[i+1]*.59+d[i+2]*.11)|0;d[i]=y;if(y<mn)mn=y;if(y>mx)mx=y}
+      const k=255/Math.max(1,mx-mn);for(let i=0;i<d.length;i+=4){const y=((d[i]-mn)*k)|0;d[i]=d[i+1]=d[i+2]=y}
+      cx.putImageData(im,0,0);
+      const {data}=await ocrWorker.recognize(cv);
+      const res=plateFrom(data.text);
+      if(res){
+        $('#scanSt').textContent='Leyendo: '+fmtPlate(res.p);
+        scanVotes[res.p]=(scanVotes[res.p]||0)+1;
+        if(res.known||scanVotes[res.p]>=2||manual){const p=res.p;closeScanner();navigator.vibrate&&navigator.vibrate(60);scanCb&&scanCb(p)}
+      } else if(manual){$('#scanSt').textContent='No se pudo leer. Acércate o escribe la tablilla.'}
+    }
+  }catch(e){}
+  scanBusy=false;
+}
+$('#scanX').onclick=closeScanner;
+$('#scanCap').onclick=()=>scanFrame(true);
+$('#rondaCam').onclick=()=>openScanner(p=>{$('#rondaIn').value=fmtPlate(p);$('#rondaBuscar').click()});
+$('#gateCam').onclick=()=>openScanner(p=>{$('#manual').value=fmtPlate(p);$('#buscar').click()});
 
 /* ================= REGISTRO ================= */
 let logging=false;
