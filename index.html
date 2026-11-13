@@ -1,4 +1,4 @@
-<!-- prueba --><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -97,6 +97,16 @@ h2{font-size:15px;margin:0 0 10px}
   <div class="card"><h2>Últimas lecturas de la cámara</h2><div id="readList"><div class="empty">Sin lecturas todavía</div></div></div>
 </section>
 
+<!-- ====== RONDA (guardia) ====== -->
+<section class="tab" id="t-ronda">
+  <div class="card">
+    <h2>🔦 Ronda: ¿de quién es este vehículo?</h2>
+    <div class="row"><input id="rondaIn" class="plateIn" placeholder="ABC123" autocomplete="off" maxlength="10"><button class="btn" style="flex:0 0 auto" id="rondaBuscar">Buscar</button></div>
+    <p class="muted" style="margin:8px 0 0">Escribe la tablilla del carro mal estacionado para ver la casa y llamar al dueño.</p>
+  </div>
+  <div id="rondaRes"></div>
+</section>
+
 <!-- ====== CODIGO (guardia) ====== -->
 <section class="tab" id="t-code">
   <div class="card">
@@ -124,7 +134,7 @@ h2{font-size:15px;margin:0 0 10px}
 <!-- ====== REGISTRO (guardia) ====== -->
 <section class="tab" id="t-log">
   <div class="card"><h2>Registro de entradas y salidas</h2>
-    <select id="logFilter"><option value="">Todos</option><option value="entrada">Entradas</option><option value="salida">Salidas</option><option value="no_registrado">No registrados</option><option value="pase">Con pase de visita</option><option value="auto">Automáticos (cámara)</option></select></div>
+    <select id="logFilter"><option value="">Todos</option><option value="entrada">Entradas</option><option value="salida">Salidas</option><option value="no_registrado">No registrados</option><option value="aviso">Avisos de ronda</option><option value="pase">Con pase de visita</option><option value="auto">Automáticos (cámara)</option></select></div>
   <div class="card" id="logList"></div>
 </section>
 
@@ -145,6 +155,14 @@ h2{font-size:15px;margin:0 0 10px}
     <label>Nota para el guardia</label><input id="v_nota" placeholder="Ej. viene a entregar muebles">
     <button class="btn big" style="margin-top:14px" id="genPass">Generar código</button>
     <p class="muted" style="margin-top:8px">Si pones la tablilla, la cámara del portón reconoce al visitante sola.</p>
+  </div>
+  <div class="card" id="myVehCard">
+    <h2>🚗 Mis vehículos</h2>
+    <p class="muted" style="margin:0 0 6px">Regístralos para que el guardia te pueda localizar si tu carro necesita moverse.</p>
+    <div id="myVehList"></div>
+    <div class="row" style="margin-top:8px"><div><label>Tablilla *</label><input id="mv_tab" style="text-transform:uppercase" placeholder="ABC123"></div><div><label>Marca</label><input id="mv_marca" placeholder="Toyota"></div></div>
+    <div class="row"><div><label>Modelo</label><input id="mv_modelo" placeholder="RAV4"></div><div><label>Color</label><input id="mv_color" placeholder="Gris"></div></div>
+    <button class="btn" style="margin-top:12px;width:100%" id="mvAdd">＋ Añadir vehículo</button>
   </div>
   <div class="card"><h2>Mis pases</h2><div id="myList"></div></div>
 </section>
@@ -215,6 +233,7 @@ const LS={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){re
 /* ---------- state ---------- */
 let me=null, uid=null, unsubs=[];
 let vehicles=new Map(), logs=[], activePasses=new Map(), readings=[], users=new Map(), myPasses=[], config={};
+let myVehs=[];
 const loadTime=Date.now();
 const isStaff=()=>me&&me.aprobado&&(me.rol==='admin'||me.rol==='guardia');
 const isAdmin=()=>me&&me.aprobado&&me.rol==='admin';
@@ -282,14 +301,15 @@ function start(){
       readings=s.docs.map(d=>({id:d.id,...d.data()}));renderReadings();
       s.docChanges().forEach(ch=>{if(ch.type==='added'&&!s.metadata.hasPendingWrites){const r={id:ch.doc.id,...ch.doc.data()};if(tsMs(r.ts)>loadTime-5000&&tsMs(r.ts)>lastHandled){lastHandled=tsMs(r.ts);handleReading(r)}}});
     },onErr));
-    buildNav(isAdmin()?['gate','code','veh','log','users','set']:['gate','code','log','set']);
+    buildNav(isAdmin()?['gate','ronda','code','veh','log','users','set']:['gate','ronda','code','log','set']);
   } else {
     $('#ttl').textContent='🎟️ Pases de Visita';
     dataUnsubs.push(onSnapshot(query(collection(db,'pases'),where('uid','==',uid)),s=>{myPasses=s.docs.map(d=>({code:d.id,...d.data()})).sort((a,b)=>b.creado-a.creado);renderMine()},onErr));
+    dataUnsubs.push(onSnapshot(query(collection(db,'vehiculos'),where('uid','==',uid)),s=>{myVehs=s.docs.map(d=>({id:d.id,...d.data()}));renderMyVeh()},onErr));
     buildNav(['vis','set']);
   }
 }
-const TABS={gate:['🚗','Portón'],code:['🔑','Código'],veh:['📇','Vehículos'],log:['📋','Registro'],users:['👥','Usuarios'],vis:['🎟️','Visitas'],set:['⚙️','Ajustes']};
+const TABS={gate:['🚗','Portón'],ronda:['🔦','Ronda'],code:['🔑','Código'],veh:['📇','Vehículos'],log:['📋','Registro'],users:['👥','Usuarios'],vis:['🎟️','Visitas'],set:['⚙️','Ajustes']};
 function buildNav(t){
   $('#nav').innerHTML=t.map(k=>`<button data-t="${k}"><b>${TABS[k][0]}</b>${TABS[k][1]}</button>`).join('');
   $('#nav').classList.remove('hide');
@@ -350,7 +370,7 @@ $('#manual').onkeydown=e=>{if(e.key==='Enter')$('#buscar').click()};
 
 function imgTag(r){return r&&r.imagen?`<img src="${esc(r.imagen)}" alt="Foto de la cámara">`:''}
 function renderVehicleCard(p,r,manual){
-  const v=vehicles.get(p),box=$('#gateRes');
+  let v=vehicles.get(p);const box=$('#gateRes');if(v)v={...v,...owner(v)};
   const meta=r&&!r.manual?`<p class="muted" style="text-align:center;margin:6px 0 0">📷 ${esc(r.camara||'Cámara')} · ${fmtTime(r.ts)}${r.confianza?` · ${Math.round(r.confianza*100)}%`:''}${norm(r.placa)!==p?` · leyó ${esc(fmtPlate(r.placa))}`:''}</p>`:'';
   if(!v){
     const n=nearPlate(p);
@@ -374,7 +394,7 @@ function renderVehicleCard(p,r,manual){
     <div style="text-align:center"><span class="plate">${esc(fmtPlate(p))}</span></div>${meta}
     <dl class="kv"><dt>Dueño</dt><dd style="font-size:19px">${esc(v.nombre||'—')}</dd>
       <dt>Unidad / Apto</dt><dd>${esc(v.unidad||'—')}</dd>
-      <dt>Teléfono</dt><dd>${esc(v.telefono||'—')}</dd>
+      <dt>Teléfono</dt><dd>${v.telefono?`<a style="color:#93c5fd" href="${telHref(v.telefono)}">📞 ${esc(v.telefono)}</a>`:'—'}</dd>
       <dt>Vehículo</dt><dd>${esc([v.marca,v.modelo,v.color].filter(Boolean).join(' · ')||'—')}</dd>
       ${v.notas?`<dt>Notas</dt><dd style="color:#fde68a">${esc(v.notas)}</dd>`:''}
       ${last?`<dt>Último mov.</dt><dd class="muted">${last.tipo==='entrada'?'Entró':last.tipo==='salida'?'Salió':'Intento'} · ${fmtTime(last.ts)}</dd>`:''}</dl>
@@ -470,12 +490,60 @@ function renderMine(){
 }
 setInterval(()=>{if($('#t-vis').classList.contains('act'))renderMine();if($('#t-code').classList.contains('act'))renderActive()},60000);
 
+/* ================= VEHÍCULOS DEL INQUILINO ================= */
+function renderMyVeh(){
+  $('#myVehList').innerHTML=myVehs.length?myVehs.map(v=>`<div class="item"><div><span class="plate s">${esc(fmtPlate(v.id))}</span><small>${esc([v.marca,v.modelo,v.color].filter(Boolean).join(' · '))}</small></div><button class="btn sec sm" data-mvdel="${esc(v.id)}">Quitar</button></div>`).join(''):'<div class="empty" style="padding:10px 0">Aún no has registrado vehículos</div>';
+  $$('[data-mvdel]').forEach(b=>b.onclick=async()=>{if(!b.dataset.c){b.dataset.c=1;b.textContent='¿Seguro?';return}try{await deleteDoc(doc(db,'vehiculos',b.dataset.mvdel));toast('Vehículo quitado')}catch(e){toast('No se pudo quitar')}});
+}
+$('#mvAdd').onclick=async()=>{
+  const k=norm($('#mv_tab').value);if(k.length<4){toast('Escribe la tablilla');return}
+  const d={uid,nombre:me.nombre||'',unidad:me.unidad||'',telefono:me.telefono||'',marca:$('#mv_marca').value.trim(),modelo:$('#mv_modelo').value.trim(),color:$('#mv_color').value.trim(),notas:'',estado:'autorizado',origen:'inquilino',actualizado:Date.now()};
+  $('#mvAdd').disabled=true;
+  try{await setDoc(doc(db,'vehiculos',k),d);['#mv_tab','#mv_marca','#mv_modelo','#mv_color'].forEach(s=>$(s).value='');toast(me.telefono?'Vehículo registrado':'Registrado. Añade tu teléfono en Ajustes para que el guardia pueda llamarte')}
+  catch(e){toast('Esa tablilla ya está registrada. Habla con la administración.')}
+  $('#mvAdd').disabled=false;
+};
+
+/* ================= RONDA (guardia) ================= */
+function owner(v){const u=v&&v.uid?users.get(v.uid):null;return{nombre:(u&&u.nombre)||v.nombre||'',unidad:(u&&u.unidad)||v.unidad||'',telefono:(u&&u.telefono)||v.telefono||''}}
+function telHref(t){let d=String(t||'').replace(/\D/g,'');if(d.length===10)d='1'+d;return d?'tel:+'+d:''}
+$('#rondaBuscar').onclick=()=>{
+  const p=norm($('#rondaIn').value);if(!p)return;
+  let k=vehicles.has(p)?p:null;if(!k){const n=nearPlate(p);if(n&&dist(p,n)<=.5)k=n}
+  const box=$('#rondaRes');
+  if(!k){
+    const ps=passByPlate(p);
+    if(ps){const h=users.get(ps.uid)||{};const o={nombre:h.nombre||'',unidad:h.unidad||'',telefono:h.telefono||''};box.innerHTML=ronCard('vis','🎟️ VISITA',p,o,`Visita: ${esc(ps.visitante)} · ${left(ps.expira)}`);wireRonda(p,o);return}
+    const n=nearPlate(p);
+    box.innerHTML=`<div class="res bad new"><div class="bn">⛔ NO REGISTRADO</div><div class="bd"><div style="text-align:center"><span class="plate">${esc(fmtPlate(p))}</span></div><p class="muted" style="text-align:center">No está en la base de datos.${n?` ¿Será ${esc(fmtPlate(n))}?`:''}</p><button class="btn bad" style="width:100%" id="ronLog">Registrar vehículo desconocido</button></div></div>`;
+    $('#ronLog').onclick=()=>addLog({tipo:'aviso',tablilla:p,nota:'Vehículo desconocido (ronda)'});return;
+  }
+  const v=vehicles.get(k),o=owner(v);
+  box.innerHTML=ronCard('ok','🚗 '+esc(o.unidad||'Residente'),k,o,esc([v.marca,v.modelo,v.color].filter(Boolean).join(' · ')));
+  wireRonda(k,o);
+};
+$('#rondaIn').onkeydown=e=>{if(e.key==='Enter')$('#rondaBuscar').click()};
+function ronCard(cls,title,p,o,extra){
+  const tel=telHref(o.telefono);
+  return `<div class="res ${cls} new"><div class="bn">${title}</div><div class="bd">
+    <div style="text-align:center"><span class="plate">${esc(fmtPlate(p))}</span></div>
+    <dl class="kv"><dt>Dueño</dt><dd style="font-size:19px">${esc(o.nombre||'—')}</dd><dt>Casa</dt><dd style="font-size:19px">${esc(o.unidad||'—')}</dd><dt>Teléfono</dt><dd>${esc(o.telefono||'—')}</dd>${extra?`<dt>Detalle</dt><dd>${extra}</dd>`:''}</dl>
+    ${tel?`<a class="btn ok big" href="${tel}">📞 Llamar al dueño</a>
+    <div class="row" style="margin-top:8px"><a class="btn wa" id="ronWa" target="_blank" rel="noopener">💬 WhatsApp</a><button class="btn sec" id="ronLog">Registrar aviso</button></div>`:`<p class="muted">No tiene teléfono registrado.</p><button class="btn sec" style="width:100%" id="ronLog">Registrar aviso</button>`}
+  </div></div>`;
+}
+function wireRonda(p,o){
+  const wa=$('#ronWa');
+  if(wa){const msg=`Hola ${o.nombre}, le escribe la seguridad de ${config.lugar||'la urbanización'}. Su vehículo tablilla ${fmtPlate(p)} necesita moverse porque está mal estacionado. Gracias.`;wa.href=`https://wa.me/${telHref(o.telefono).replace('tel:+','')}?text=${encodeURIComponent(msg)}`}
+  $('#ronLog').onclick=()=>{addLog({tipo:'aviso',tablilla:p,nombre:o.nombre,unidad:o.unidad,nota:'Mal estacionado (ronda)'});$('#rondaRes').innerHTML='';$('#rondaIn').value=''};
+}
+
 /* ================= REGISTRO ================= */
 let logging=false;
 async function addLog(e,silent){
   if(logging&&!silent)return;logging=true;
   try{await addDoc(collection(db,'accesos'),{nombre:'',unidad:'',...e,guardia:me.nombre||auth.currentUser.email,guardiaUid:uid,ts:Date.now()});
-    if(!silent){toast(e.tipo==='entrada'?'Entrada registrada':e.tipo==='salida'?'Salida registrada':'Intento registrado');resetGate()}}
+    if(!silent){toast(e.tipo==='entrada'?'Entrada registrada':e.tipo==='salida'?'Salida registrada':e.tipo==='aviso'?'Aviso registrado':'Intento registrado');resetGate()}}
   catch(err){toast('No se pudo guardar el registro')}
   logging=false;
 }
@@ -484,7 +552,7 @@ function renderLog(){
   const f=$('#logFilter').value,L=logs.filter(l=>!f||(f==='pase'?l.codigo:f==='auto'?l.auto:l.tipo===f));
   $('#logList').innerHTML=L.length?L.map(l=>`<div class="item"><div>${l.tablilla?`<span class="plate s">${esc(fmtPlate(l.tablilla))}</span>`:'<span class="muted">Sin tablilla</span>'}
     <small>${esc(l.nombre||'No registrado')}${l.unidad?' · '+esc(l.unidad):''}${l.codigo?` · 🎟️ visita a ${esc(l.anfitrion)} (${esc(fmtCode(l.codigo))})`:''}<br>${fmtTime(l.ts)} · ${l.auto?'🤖 automático':esc(l.guardia||'')}</small></div>
-    <span class="pill ${l.tipo==='entrada'?'p-ok':l.tipo==='salida'?'p-mut':'p-bad'}">${l.tipo==='entrada'?'ENTRADA':l.tipo==='salida'?'SALIDA':'NO REG.'}</span></div>`).join(''):'<div class="empty">Sin registros todavía</div>';
+    <span class="pill ${l.tipo==='entrada'?'p-ok':l.tipo==='salida'?'p-mut':l.tipo==='aviso'?'p-warn':'p-bad'}">${l.tipo==='entrada'?'ENTRADA':l.tipo==='salida'?'SALIDA':l.tipo==='aviso'?'AVISO':'NO REG.'}</span></div>`).join(''):'<div class="empty">Sin registros todavía</div>';
 }
 
 /* ================= USUARIOS (admin) ================= */
