@@ -1,0 +1,567 @@
+<!-- prueba --><!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control de Acceso</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--line:#334155;--tx:#f1f5f9;--mut:#94a3b8;--ok:#16a34a;--bad:#dc2626;--warn:#d97706;--pri:#2563eb;--wa:#25d366}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:76px}
+header{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}
+header h1{font-size:17px;margin:0}
+.chip{font-size:11px;padding:3px 8px;border-radius:99px;background:#334155;color:var(--mut);white-space:nowrap}
+.chip.on{background:#14532d;color:#bbf7d0}.chip.off{background:#7f1d1d;color:#fecaca}
+main{padding:14px;max-width:720px;margin:0 auto}
+.tab{display:none}.tab.act{display:block}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#0b1222;border-top:1px solid var(--line)}
+nav button{flex:1;background:none;border:0;color:var(--mut);padding:10px 0 14px;font-size:11px}
+nav button b{display:block;font-size:20px;font-weight:400}
+nav button.act{color:#60a5fa}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:12px 16px;font-size:15px;font-weight:600;color:#fff;background:var(--pri);cursor:pointer;text-decoration:none}
+.btn.big{width:100%;padding:20px;font-size:18px;border-radius:14px}
+.btn.sec{background:#334155}.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}.btn.wa{background:var(--wa);color:#04210f}.btn.sm{padding:8px 12px;font-size:13px}
+.btn:disabled{opacity:.5}
+input,select,textarea{width:100%;background:#0f172a;border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:11px;font-size:16px}
+label{font-size:12px;color:var(--mut);display:block;margin:10px 0 4px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.plateIn{font-size:26px;font-weight:800;letter-spacing:3px;text-align:center;text-transform:uppercase}
+.res{border-radius:14px;overflow:hidden;margin-bottom:12px}
+.res .bn{padding:16px;text-align:center;font-size:24px;font-weight:900;letter-spacing:1px}
+.res.ok .bn{background:var(--ok)}.res.bad .bn{background:var(--bad)}.res.warn .bn{background:var(--warn)}.res.vis .bn{background:#1d4ed8}
+.res .bd{background:var(--card);padding:14px;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px}
+.res img{width:100%;max-height:180px;object-fit:contain;background:#000;border-radius:10px;margin-bottom:10px}
+.plate{display:inline-block;background:#f8fafc;color:#0f172a;font-weight:900;letter-spacing:3px;padding:4px 12px;border-radius:6px;border:2px solid #0f172a;font-size:22px}
+.plate.s{font-size:14px;padding:2px 8px;letter-spacing:2px}
+.code{font-family:ui-monospace,Menlo,monospace;font-size:40px;font-weight:900;letter-spacing:8px;text-align:center;background:#0f172a;border:2px dashed #60a5fa;border-radius:12px;padding:12px;margin:10px 0;color:#bfdbfe}
+.kv{display:grid;grid-template-columns:115px 1fr;gap:6px 10px;margin:12px 0;font-size:15px}
+.kv dt{color:var(--mut)}.kv dd{margin:0;font-weight:600}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border:0}
+.item small{color:var(--mut);display:block;margin-top:2px}
+.pill{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:700;white-space:nowrap}
+.p-ok{background:#14532d;color:#bbf7d0}.p-vis{background:#1e3a8a;color:#bfdbfe}.p-bad{background:#7f1d1d;color:#fecaca}.p-mut{background:#334155;color:#cbd5e1}.p-warn{background:#78350f;color:#fde68a}
+.dur{display:flex;gap:8px}.dur button{flex:1;padding:14px 0;font-size:17px;font-weight:800;border-radius:10px;border:2px solid var(--line);background:#0f172a;color:var(--tx)}
+.dur button.act{border-color:#60a5fa;background:#1e3a8a}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;z-index:9}
+.modal.open{display:flex}
+.sheet{background:var(--card);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#f1f5f9;color:#0f172a;padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;display:none;z-index:20}
+.muted{color:var(--mut);font-size:13px}
+.empty{text-align:center;color:var(--mut);padding:24px 0}
+h2{font-size:15px;margin:0 0 10px}
+.hide{display:none!important}
+.wait{text-align:center;padding:30px 10px;color:var(--mut)}
+.wait .pulse{width:16px;height:16px;border-radius:50%;background:#22c55e;display:inline-block;margin-bottom:8px;animation:p 1.6s infinite}
+@keyframes p{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}100%{box-shadow:0 0 0 18px rgba(34,197,94,0)}}
+@keyframes flash{0%{transform:scale(.97);opacity:.4}100%{transform:none;opacity:1}}
+.new{animation:flash .35s ease-out}
+</style>
+</head>
+<body>
+<header><h1 id="ttl">🛡️ Control de Acceso</h1><div class="row" style="flex:0 0 auto;gap:6px"><span class="chip hide" id="camChip">Cámara</span><span class="chip" id="conn">…</span></div></header>
+
+<main>
+<!-- ====== LOGIN ====== -->
+<section id="v-login" class="hide">
+  <div class="card">
+    <h2 id="lgTitle">Entrar</h2>
+    <div id="suFields" class="hide">
+      <label>Nombre completo *</label><input id="su_nombre" autocomplete="name">
+      <div class="row"><div><label>Unidad / Apto *</label><input id="su_unidad"></div><div><label>Teléfono</label><input id="su_tel" type="tel" autocomplete="tel"></div></div>
+    </div>
+    <label>Email</label><input id="lg_email" type="email" autocomplete="email">
+    <label>Contraseña</label><input id="lg_pass" type="password" autocomplete="current-password">
+    <button class="btn big" style="margin-top:14px" id="lgBtn">Entrar</button>
+    <p class="muted" style="text-align:center;margin-top:14px">
+      <a href="#" id="lgToggle" style="color:#93c5fd">¿Eres inquilino nuevo? Crea tu cuenta</a><br><br>
+      <a href="#" id="lgForgot" style="color:#93c5fd">Olvidé mi contraseña</a></p>
+    <p class="muted" id="lgErr" style="color:#fca5a5;text-align:center"></p>
+  </div>
+</section>
+
+<section id="v-pending" class="hide">
+  <div class="card wait"><div style="font-size:40px">⏳</div><h2>Tu cuenta espera aprobación</h2>
+  <p>La administración tiene que aprobarla antes de que puedas crear pases de visita. Esta pantalla se actualiza sola.</p>
+  <button class="btn sec" id="pendOut">Salir</button></div>
+</section>
+
+<!-- ====== PORTON (guardia) ====== -->
+<section class="tab" id="t-gate">
+  <div id="gateRes"><div class="card wait"><span class="pulse"></span><br>Esperando vehículos en el portón…<br><span class="muted" id="lastSeen"></span></div></div>
+  <div class="card">
+    <label style="margin-top:0">Escribir tablilla a mano</label>
+    <div class="row"><input id="manual" class="plateIn" placeholder="ABC123" autocomplete="off" maxlength="10"><button class="btn" style="flex:0 0 auto" id="buscar">Buscar</button></div>
+  </div>
+  <div class="card"><h2>Últimas lecturas de la cámara</h2><div id="readList"><div class="empty">Sin lecturas todavía</div></div></div>
+</section>
+
+<!-- ====== CODIGO (guardia) ====== -->
+<section class="tab" id="t-code">
+  <div class="card">
+    <h2>🔑 Verificar código de visita</h2>
+    <input id="codeIn" class="plateIn" placeholder="CÓDIGO" autocomplete="off" maxlength="8">
+    <button class="btn big" style="margin-top:10px" id="verify">Verificar</button>
+  </div>
+  <div id="codeRes"></div>
+  <div class="card"><h2>Visitas esperadas ahora</h2><div id="activeList"></div></div>
+</section>
+
+<!-- ====== VEHICULOS (admin) ====== -->
+<section class="tab" id="t-veh">
+  <div class="card">
+    <div class="row"><input id="q" placeholder="Buscar tablilla, nombre o unidad…"><button class="btn" style="flex:0 0 auto" id="addVeh">＋ Nuevo</button></div>
+    <div class="row" style="margin-top:8px">
+      <label for="csv" class="btn sec sm" style="margin:0">⬆ Importar CSV</label><input type="file" id="csv" accept=".csv,text/csv" hidden>
+      <button class="btn sec sm" id="dlCsv">⬇ Descargar CSV</button>
+    </div>
+    <p class="muted" id="vehCount" style="margin:8px 0 0"></p>
+  </div>
+  <div class="card" id="vehList"></div>
+</section>
+
+<!-- ====== REGISTRO (guardia) ====== -->
+<section class="tab" id="t-log">
+  <div class="card"><h2>Registro de entradas y salidas</h2>
+    <select id="logFilter"><option value="">Todos</option><option value="entrada">Entradas</option><option value="salida">Salidas</option><option value="no_registrado">No registrados</option><option value="pase">Con pase de visita</option><option value="auto">Automáticos (cámara)</option></select></div>
+  <div class="card" id="logList"></div>
+</section>
+
+<!-- ====== USUARIOS (admin) ====== -->
+<section class="tab" id="t-users">
+  <div class="card"><h2>Por aprobar</h2><div id="pendList"></div></div>
+  <div class="card"><h2>Usuarios</h2><input id="uq" placeholder="Buscar…" style="margin-bottom:6px"><div id="userList"></div></div>
+</section>
+
+<!-- ====== MIS VISITAS (inquilino) ====== -->
+<section class="tab" id="t-vis">
+  <div class="card" id="newPass">
+    <h2>➕ Nueva visita</h2>
+    <label>Nombre del visitante *</label><input id="v_nombre" placeholder="Ej. María Rivera">
+    <div class="row"><div><label>Celular del visitante</label><input id="v_tel" type="tel" placeholder="787-555-1234"></div><div><label>Tablilla (opcional)</label><input id="v_tab" style="text-transform:uppercase" placeholder="ABC123"></div></div>
+    <label>¿Por cuánto tiempo?</label>
+    <div class="dur" id="dur"><button data-h="4">4 h</button><button data-h="8" class="act">8 h</button><button data-h="24">24 h</button></div>
+    <label>Nota para el guardia</label><input id="v_nota" placeholder="Ej. viene a entregar muebles">
+    <button class="btn big" style="margin-top:14px" id="genPass">Generar código</button>
+    <p class="muted" style="margin-top:8px">Si pones la tablilla, la cámara del portón reconoce al visitante sola.</p>
+  </div>
+  <div class="card"><h2>Mis pases</h2><div id="myList"></div></div>
+</section>
+
+<!-- ====== AJUSTES ====== -->
+<section class="tab" id="t-set">
+  <div class="card"><h2>👤 Mi cuenta</h2>
+    <div class="row"><div><label>Nombre</label><input id="me_nombre"></div><div><label>Unidad / Apto</label><input id="me_unidad"></div></div>
+    <label>Teléfono</label><input id="me_tel" type="tel">
+    <div class="row" style="margin-top:12px"><button class="btn" id="meSave">Guardar</button><button class="btn sec" id="logout">Salir</button></div>
+    <p class="muted" id="meInfo"></p>
+  </div>
+  <div class="card staff"><h2>🔊 Portón</h2>
+    <button class="btn sec" id="soundBtn">Activar sonido de alertas</button>
+    <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--tx);margin-top:12px"><input type="checkbox" id="autoLog" style="width:auto"> Registrar entrada automática de vehículos autorizados</label>
+    <p class="muted">Se guarda en este dispositivo. Los no registrados y bloqueados siempre esperan al guardia.</p>
+  </div>
+  <div class="card admin"><h2>🏢 Nombre del lugar</h2>
+    <input id="cfg_lugar" placeholder="Ej. Condominio Villas Asturias">
+    <button class="btn sm" style="margin-top:8px" id="cfgSave">Guardar</button>
+    <p class="muted">Aparece en el mensaje que el inquilino envía al visitante.</p>
+  </div>
+  <div class="card admin"><h2>Formato del CSV de vehículos</h2>
+    <code style="font-size:12px;word-break:break-all">tablilla,nombre,telefono,unidad,marca,modelo,color,estado,notas</code>
+    <p class="muted">estado: <b>autorizado</b>, <b>visitante</b> o <b>bloqueado</b>.</p></div>
+</section>
+</main>
+
+<nav id="nav" class="hide"></nav>
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+/* ================================================================
+   1) PEGA AQUÍ LA CONFIGURACIÓN DE TU PROYECTO FIREBASE
+   (Consola Firebase → Configuración del proyecto → Tus apps → Web)
+   ================================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBUeAkznxjTOl84IP979BEErE29_XwaSg4",
+  authDomain: "urb-los-arboles-acceso.firebaseapp.com",
+  projectId: "urb-los-arboles-acceso",
+  storageBucket: "urb-los-arboles-acceso.firebasestorage.app",
+  messagingSenderId: "376536783198",
+  appId: "1:376536783198:web:e2d18ef1ed5a2ac9ee17cf"
+};
+const ADMIN_EMAIL = "jnazario@jr-gc.com";   // administrador principal
+/* ================================================================ */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=p=>String(p||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const fmtPlate=p=>{p=norm(p);return /^[A-Z]{3}\d{3}$/.test(p)?p.slice(0,3)+'-'+p.slice(3):p};
+const fmtCode=c=>{c=norm(c);return c.length===6?c.slice(0,3)+'-'+c.slice(3):c};
+const tsMs=t=>t?.toMillis?t.toMillis():(typeof t==='number'?t:0);
+const fmtTime=t=>new Date(tsMs(t)).toLocaleString('es-PR',{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
+const left=ts=>{let m=Math.round((ts-Date.now())/60000);if(m<=0)return'vencido';const h=Math.floor(m/60);m%=60;return h?`quedan ${h} h ${m} min`:`quedan ${m} min`};
+const ago=t=>{const s=Math.round((Date.now()-tsMs(t))/1000);return s<60?`hace ${s} s`:s<3600?`hace ${Math.round(s/60)} min`:`hace ${Math.round(s/3600)} h`};
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',2600)};
+const LS={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- state ---------- */
+let me=null, uid=null, unsubs=[];
+let vehicles=new Map(), logs=[], activePasses=new Map(), readings=[], users=new Map(), myPasses=[], config={};
+const loadTime=Date.now();
+const isStaff=()=>me&&me.aprobado&&(me.rol==='admin'||me.rol==='guardia');
+const isAdmin=()=>me&&me.aprobado&&me.rol==='admin';
+
+/* ================= AUTH ================= */
+let signupMode=false;
+$('#lgToggle').onclick=e=>{e.preventDefault();signupMode=!signupMode;$('#suFields').classList.toggle('hide',!signupMode);$('#lgTitle').textContent=signupMode?'Crear cuenta de inquilino':'Entrar';$('#lgBtn').textContent=signupMode?'Crear cuenta':'Entrar';$('#lgToggle').textContent=signupMode?'Ya tengo cuenta — Entrar':'¿Eres inquilino nuevo? Crea tu cuenta';$('#lgErr').textContent=''};
+$('#lgForgot').onclick=async e=>{e.preventDefault();const em=$('#lg_email').value.trim();if(!em){$('#lgErr').textContent='Escribe tu email primero';return}try{await sendPasswordResetEmail(auth,em);toast('Te enviamos un email para cambiar la contraseña')}catch(err){$('#lgErr').textContent=authErr(err)}};
+$('#lgBtn').onclick=async()=>{
+  const em=$('#lg_email').value.trim(),pw=$('#lg_pass').value;$('#lgErr').textContent='';
+  if(!em||!pw){$('#lgErr').textContent='Email y contraseña son requeridos';return}
+  $('#lgBtn').disabled=true;
+  try{
+    if(signupMode){
+      const nombre=$('#su_nombre').value.trim(),unidad=$('#su_unidad').value.trim();
+      if(!nombre||!unidad){$('#lgErr').textContent='Nombre y unidad son requeridos';$('#lgBtn').disabled=false;return}
+      const cred=await createUserWithEmailAndPassword(auth,em,pw);
+      const esAdmin=em.toLowerCase()===ADMIN_EMAIL;
+      await setDoc(doc(db,'users',cred.user.uid),{rol:esAdmin?'admin':'inquilino',aprobado:esAdmin,nombre,unidad,telefono:$('#su_tel').value.trim(),email:em,creado:Date.now()});
+    } else await signInWithEmailAndPassword(auth,em,pw);
+  }catch(err){$('#lgErr').textContent=authErr(err)}
+  $('#lgBtn').disabled=false;
+};
+$('#lg_pass').onkeydown=e=>{if(e.key==='Enter')$('#lgBtn').click()};
+function authErr(e){const c=e.code||'';return c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')?'Email o contraseña incorrectos':c.includes('email-already')?'Ese email ya tiene cuenta':c.includes('weak-password')?'La contraseña debe tener al menos 6 caracteres':c.includes('invalid-email')?'Email no válido':c.includes('too-many')?'Demasiados intentos, espera un momento':'Error: '+(e.message||c)}
+const doLogout=()=>signOut(auth);
+$('#logout').onclick=doLogout;$('#pendOut').onclick=doLogout;
+
+onAuthStateChanged(auth,u=>{
+  unsubs.forEach(f=>f());unsubs=[];me=null;
+  if(!u){uid=null;show('login');return}
+  uid=u.uid;$('#conn').textContent='Conectando…';
+  unsubs.push(onSnapshot(doc(db,'users',uid),s=>{
+    const prev=me&&(me.rol+me.aprobado);
+    me=s.exists()?s.data():null;
+    if(!me){show('pending');return}
+    fillMe();
+    if(prev!==(me.rol+me.aprobado))start();
+  },e=>{$('#conn').textContent='Error';toast('No se pudo cargar tu cuenta')}));
+});
+function show(v){
+  $('#v-login').classList.toggle('hide',v!=='login');$('#v-pending').classList.toggle('hide',v!=='pending');
+  if(v!=='app'){$$('.tab').forEach(x=>x.classList.remove('act'));$('#nav').classList.add('hide');$('#camChip').classList.add('hide')}
+  $('#conn').textContent=v==='login'?'':$('#conn').textContent;
+}
+
+/* ================= START BY ROLE ================= */
+let dataUnsubs=[];
+function start(){
+  dataUnsubs.forEach(f=>f());dataUnsubs=[];
+  if(!me.aprobado){show('pending');return}
+  show('app');$('#conn').textContent='En línea';$('#conn').className='chip on';
+  $$('.staff').forEach(e=>e.classList.toggle('hide',!isStaff()));
+  $$('.admin').forEach(e=>e.classList.toggle('hide',!isAdmin()));
+  $('#addVeh').classList.toggle('hide',!isAdmin());
+  const onErr=e=>{console.error(e);$('#conn').textContent='Sin conexión';$('#conn').className='chip off'};
+  dataUnsubs.push(onSnapshot(doc(db,'config','general'),s=>{config=s.exists()?s.data():{};$('#cfg_lugar').value=config.lugar||''},()=>{}));
+  if(isStaff()){
+    $('#ttl').textContent='🛡️ Portón';$('#camChip').classList.remove('hide');
+    dataUnsubs.push(onSnapshot(collection(db,'vehiculos'),s=>{vehicles=new Map(s.docs.map(d=>[d.id,d.data()]));renderVeh()},onErr));
+    dataUnsubs.push(onSnapshot(query(collection(db,'accesos'),orderBy('ts','desc'),limit(200)),s=>{logs=s.docs.map(d=>({id:d.id,...d.data()}));renderLog()},onErr));
+    dataUnsubs.push(onSnapshot(query(collection(db,'pases'),where('expira','>',Date.now())),s=>{activePasses=new Map(s.docs.map(d=>[d.id,d.data()]));renderActive()},onErr));
+    dataUnsubs.push(onSnapshot(collection(db,'users'),s=>{users=new Map(s.docs.map(d=>[d.id,d.data()]));renderUsers();renderActive()},()=>{}));
+    dataUnsubs.push(onSnapshot(query(collection(db,'lecturas'),orderBy('ts','desc'),limit(15)),s=>{
+      readings=s.docs.map(d=>({id:d.id,...d.data()}));renderReadings();
+      s.docChanges().forEach(ch=>{if(ch.type==='added'&&!s.metadata.hasPendingWrites){const r={id:ch.doc.id,...ch.doc.data()};if(tsMs(r.ts)>loadTime-5000&&tsMs(r.ts)>lastHandled){lastHandled=tsMs(r.ts);handleReading(r)}}});
+    },onErr));
+    buildNav(isAdmin()?['gate','code','veh','log','users','set']:['gate','code','log','set']);
+  } else {
+    $('#ttl').textContent='🎟️ Pases de Visita';
+    dataUnsubs.push(onSnapshot(query(collection(db,'pases'),where('uid','==',uid)),s=>{myPasses=s.docs.map(d=>({code:d.id,...d.data()})).sort((a,b)=>b.creado-a.creado);renderMine()},onErr));
+    buildNav(['vis','set']);
+  }
+}
+const TABS={gate:['🚗','Portón'],code:['🔑','Código'],veh:['📇','Vehículos'],log:['📋','Registro'],users:['👥','Usuarios'],vis:['🎟️','Visitas'],set:['⚙️','Ajustes']};
+function buildNav(t){
+  $('#nav').innerHTML=t.map(k=>`<button data-t="${k}"><b>${TABS[k][0]}</b>${TABS[k][1]}</button>`).join('');
+  $('#nav').classList.remove('hide');
+  $$('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.t));
+  go(t[0]);
+}
+function go(k){$$('#nav button').forEach(x=>x.classList.toggle('act',x.dataset.t===k));$$('.tab').forEach(x=>x.classList.toggle('act',x.id==='t-'+k));scrollTo(0,0)}
+function fillMe(){$('#me_nombre').value=me.nombre||'';$('#me_unidad').value=me.unidad||'';$('#me_tel').value=me.telefono||'';$('#meInfo').textContent=`${auth.currentUser?.email||''} · ${me.rol}`}
+$('#meSave').onclick=async()=>{try{await updateDoc(doc(db,'users',uid),{nombre:$('#me_nombre').value.trim(),unidad:$('#me_unidad').value.trim(),telefono:$('#me_tel').value.trim()});toast('Guardado')}catch(e){toast('No se pudo guardar')}};
+$('#cfgSave').onclick=async()=>{try{await setDoc(doc(db,'config','general'),{lugar:$('#cfg_lugar').value.trim()});toast('Guardado')}catch(e){toast('No se pudo guardar')}};
+
+/* ================= SOUND ================= */
+let actx=null;
+$('#soundBtn').onclick=()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();beep('ok');$('#soundBtn').textContent='🔊 Sonido activado';}catch(e){toast('Este navegador no permite sonido')}};
+function beep(kind){
+  if(!actx)return;const seq=kind==='ok'?[[880,.12]]:kind==='vis'?[[660,.12],[880,.12]]:[[300,.25],[0,.08],[300,.25],[0,.08],[300,.25]];
+  let t=actx.currentTime;for(const [f,d] of seq){if(f){const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.type='square';g.gain.value=.08;o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d)}t+=d}
+}
+$('#autoLog').checked=LS.get('autoLog',false);$('#autoLog').onchange=e=>LS.set('autoLog',e.target.checked);
+
+/* ================= PORTON: lecturas de la cámara ================= */
+let lastHandled=0;
+setInterval(()=>{renderCamChip()},15000);
+function renderCamChip(){
+  const r=readings[0];const c=$('#camChip');
+  if(!r){c.textContent='📷 sin lecturas';c.className='chip';return}
+  c.textContent='📷 '+ago(r.ts);c.className='chip on';$('#lastSeen').textContent='Última lectura: '+ago(r.ts);
+}
+function renderReadings(){
+  renderCamChip();
+  $('#readList').innerHTML=readings.length?readings.map(r=>{const st=classify(r.placa);return `<div class="item" data-p="${esc(r.placa)}" data-img="${r.id}" style="cursor:pointer">
+    <div><span class="plate s">${esc(fmtPlate(r.placa))}</span><small>${esc(st.label)} · ${fmtTime(r.ts)}${r.camara?' · '+esc(r.camara):''}</small></div>
+    <span class="pill ${st.pill}">${esc(st.short)}</span></div>`}).join(''):'<div class="empty">Sin lecturas todavía</div>';
+  $$('#readList [data-p]').forEach(el=>el.onclick=()=>{const r=readings.find(x=>x.id===el.dataset.img);handleReading(r,true);scrollTo(0,0)});
+}
+function classify(p){
+  const v=vehicles.get(p);
+  if(v){const st=v.estado||'autorizado';return st==='bloqueado'?{label:v.nombre,short:'BLOQUEADO',pill:'p-bad',kind:'bad'}:st==='visitante'?{label:v.nombre,short:'VISITANTE',pill:'p-warn',kind:'vis'}:{label:v.nombre,short:'AUTORIZADO',pill:'p-ok',kind:'ok'}}
+  const ps=passByPlate(p);if(ps)return{label:'Visita de '+(users.get(ps.uid)?.nombre||''),short:'PASE',pill:'p-vis',kind:'vis'};
+  const near=nearPlate(p);if(near)return{label:'¿'+fmtPlate(near)+'? '+(vehicles.get(near).nombre||''),short:'REVISAR',pill:'p-warn',kind:'bad'};
+  return{label:'No registrado',short:'NO REG.',pill:'p-bad',kind:'bad'};
+}
+function passByPlate(p){for(const [c,x] of activePasses)if(norm(x.tablilla)===p&&passStatus(x)==='activo')return{code:c,...x};return null}
+const SIM={'0':'O','O':'0','1':'I','I':'1','8':'B','B':'8','5':'S','S':'5','2':'Z','Z':'2','6':'G','G':'6','D':'0','Q':'0'};
+function dist(a,b){if(a.length!==b.length)return 9;let d=0;for(let i=0;i<a.length;i++)if(a[i]!==b[i])d+=(SIM[a[i]]===b[i]?.5:1);return d}
+function nearPlate(p){let best=null,bd=9;for(const k of vehicles.keys()){const d=dist(p,k);if(d<bd){bd=d;best=k}}return bd<=1?best:null}
+
+function handleReading(r,manual=false){
+  if(!r)return;const p=norm(r.placa);
+  let target=p;
+  if(!vehicles.has(p)&&!passByPlate(p)){const n=nearPlate(p);if(n&&dist(p,n)<=.5)target=n} // confusión típica 0/O, 8/B → se corrige sola
+  const ps=!vehicles.has(target)&&passByPlate(target);
+  if(ps){renderPassCard(ps,'#gateRes',r);return}
+  renderVehicleCard(target,r,manual);
+}
+$('#buscar').onclick=()=>{const p=norm($('#manual').value);if(!p)return;handleReading({placa:p,ts:Date.now(),manual:true},true);$('#manual').value=''};
+$('#manual').onkeydown=e=>{if(e.key==='Enter')$('#buscar').click()};
+
+function imgTag(r){return r&&r.imagen?`<img src="${esc(r.imagen)}" alt="Foto de la cámara">`:''}
+function renderVehicleCard(p,r,manual){
+  const v=vehicles.get(p),box=$('#gateRes');
+  const meta=r&&!r.manual?`<p class="muted" style="text-align:center;margin:6px 0 0">📷 ${esc(r.camara||'Cámara')} · ${fmtTime(r.ts)}${r.confianza?` · ${Math.round(r.confianza*100)}%`:''}${norm(r.placa)!==p?` · leyó ${esc(fmtPlate(r.placa))}`:''}</p>`:'';
+  if(!v){
+    const n=nearPlate(p);
+    box.innerHTML=`<div class="res bad new"><div class="bn">⛔ NO REGISTRADO</div><div class="bd">${imgTag(r)}
+      <div style="text-align:center"><span class="plate">${esc(fmtPlate(p))}</span></div>${meta}
+      <p class="muted" style="text-align:center">No está en la base de datos ni tiene pase. Pide el código de visita.</p>
+      ${n?`<button class="btn sec" style="width:100%;margin-bottom:8px" id="useNear">¿Es ${esc(fmtPlate(n))} · ${esc(vehicles.get(n).nombre||'')}?</button>`:''}
+      <div class="row"><button class="btn sec" id="goCode">🔑 Código</button><button class="btn bad" id="logNR">Registrar intento</button></div>
+      ${isAdmin()?`<button class="btn sec sm" style="width:100%;margin-top:8px" id="addThis">＋ Añadir a la base de datos</button>`:''}</div></div>`;
+    $('#useNear')&&($('#useNear').onclick=()=>renderVehicleCard(n,r,true));
+    $('#goCode').onclick=()=>go('code');
+    $('#logNR').onclick=()=>addLog({tipo:'no_registrado',tablilla:p,lectura:r?.id||null});
+    $('#addThis')&&($('#addThis').onclick=()=>openForm(p));
+    beep('bad');navigator.vibrate&&navigator.vibrate([200,100,200]);return;
+  }
+  const st=v.estado||'autorizado',cls=st==='bloqueado'?'bad':st==='visitante'?'warn':'ok';
+  const lbl=st==='bloqueado'?'🚫 ACCESO BLOQUEADO':st==='visitante'?'🟠 VISITANTE':'✅ AUTORIZADO';
+  const last=logs.find(l=>l.tablilla===p);
+  const auto=!manual&&st==='autorizado'&&$('#autoLog').checked;
+  box.innerHTML=`<div class="res ${cls} new"><div class="bn">${lbl}</div><div class="bd">${imgTag(r)}
+    <div style="text-align:center"><span class="plate">${esc(fmtPlate(p))}</span></div>${meta}
+    <dl class="kv"><dt>Dueño</dt><dd style="font-size:19px">${esc(v.nombre||'—')}</dd>
+      <dt>Unidad / Apto</dt><dd>${esc(v.unidad||'—')}</dd>
+      <dt>Teléfono</dt><dd>${esc(v.telefono||'—')}</dd>
+      <dt>Vehículo</dt><dd>${esc([v.marca,v.modelo,v.color].filter(Boolean).join(' · ')||'—')}</dd>
+      ${v.notas?`<dt>Notas</dt><dd style="color:#fde68a">${esc(v.notas)}</dd>`:''}
+      ${last?`<dt>Último mov.</dt><dd class="muted">${last.tipo==='entrada'?'Entró':last.tipo==='salida'?'Salió':'Intento'} · ${fmtTime(last.ts)}</dd>`:''}</dl>
+    ${auto?`<p style="text-align:center;color:#86efac;font-weight:700">✔ Entrada registrada automáticamente</p>`:`<div class="row"><button class="btn ok" id="in" ${st==='bloqueado'?'disabled':''}>⬇ Entrada</button><button class="btn sec" id="out">⬆ Salida</button></div>`}
+    ${isAdmin()?`<button class="btn sec sm" style="margin-top:10px;width:100%" id="editThis">✎ Editar datos</button>`:''}</div></div>`;
+  const base={tablilla:p,nombre:v.nombre||'',unidad:v.unidad||'',lectura:r&&!r.manual?r.id:null};
+  if(auto)addLog({tipo:'entrada',...base,auto:true},true);
+  else{$('#in').onclick=()=>addLog({tipo:'entrada',...base});$('#out').onclick=()=>addLog({tipo:'salida',...base})}
+  $('#editThis')&&($('#editThis').onclick=()=>openForm(p));
+  beep(st==='autorizado'?'ok':st==='visitante'?'vis':'bad');navigator.vibrate&&navigator.vibrate(st==='autorizado'?80:[200,100,200]);
+}
+function resetGate(){$('#gateRes').innerHTML=`<div class="card wait"><span class="pulse"></span><br>Esperando vehículos en el portón…<br><span class="muted" id="lastSeen">${readings[0]?'Última lectura: '+ago(readings[0].ts):''}</span></div>`}
+
+/* ================= PASES: guardia ================= */
+const passStatus=p=>p.cancelado?'cancelado':Date.now()>p.expira?'vencido':'activo';
+$('#verify').onclick=async()=>{
+  const c=norm($('#codeIn').value);if(!c)return;
+  let p=activePasses.get(c);
+  if(!p){try{const s=await getDoc(doc(db,'pases',c));if(s.exists())p=s.data()}catch(e){}}
+  if(!p){$('#codeRes').innerHTML=`<div class="res bad new"><div class="bn">⛔ CÓDIGO NO EXISTE</div><div class="bd"><div class="code">${esc(fmtCode(c))}</div><p class="muted" style="text-align:center">Verifica que lo escribió bien. Si sigue igual, llama al inquilino.</p></div></div>`;beep('bad');return}
+  renderPassCard({code:c,...p},'#codeRes');
+};
+$('#codeIn').onkeydown=e=>{if(e.key==='Enter')$('#verify').click()};
+function renderPassCard(x,target,r){
+  const st=passStatus(x),host=users.get(x.uid)||{};
+  const cls=st==='activo'?'vis':'bad',lbl=st==='activo'?'🎟️ VISITA CON PASE':st==='vencido'?'⌛ PASE VENCIDO':'🚫 PASE CANCELADO';
+  $(target).innerHTML=`<div class="res ${cls} new"><div class="bn">${lbl}</div><div class="bd">${imgTag(r)}
+    <div class="code" style="font-size:26px">${esc(fmtCode(x.code))}</div>
+    <dl class="kv"><dt>Visitante</dt><dd style="font-size:19px">${esc(x.visitante)}</dd>
+      ${x.tablilla?`<dt>Tablilla</dt><dd><span class="plate s">${esc(fmtPlate(x.tablilla))}</span></dd>`:''}
+      ${x.telefono?`<dt>Tel. visitante</dt><dd>${esc(x.telefono)}</dd>`:''}
+      <dt>Visita a</dt><dd>${esc(host.nombre||'—')}</dd>
+      <dt>Unidad / Apto</dt><dd>${esc(host.unidad||'—')}</dd>
+      ${host.telefono?`<dt>Tel. inquilino</dt><dd>${esc(host.telefono)}</dd>`:''}
+      <dt>Válido hasta</dt><dd>${fmtTime(x.expira)} <span class="muted">(${left(x.expira)})</span></dd>
+      ${x.nota?`<dt>Nota</dt><dd style="color:#fde68a">${esc(x.nota)}</dd>`:''}
+      <dt>Usado</dt><dd>${x.usos?`${x.usos} vez/veces · última ${fmtTime(x.ultimaEntrada)}`:'Nunca'}</dd></dl>
+    ${st==='activo'?`<div class="row"><button class="btn ok" id="pIn">⬇ Entrada</button><button class="btn sec" id="pOut">⬆ Salida</button></div>`:''}</div></div>`;
+  beep(st==='activo'?'vis':'bad');
+  if(st!=='activo')return;
+  const base={tablilla:norm(x.tablilla||(r&&r.placa)),nombre:x.visitante,unidad:host.unidad||'',codigo:x.code,anfitrion:host.nombre||'',lectura:r&&!r.manual?r.id:null};
+  $('#pIn').onclick=async()=>{$('#pIn').disabled=true;try{await updateDoc(doc(db,'pases',x.code),{usos:(x.usos||0)+1,ultimaEntrada:Date.now()})}catch(e){}await addLog({tipo:'entrada',...base});$(target).innerHTML='';$('#codeIn').value='';if(target==='#gateRes')resetGate()};
+  $('#pOut').onclick=async()=>{await addLog({tipo:'salida',...base});$(target).innerHTML='';$('#codeIn').value='';if(target==='#gateRes')resetGate()};
+}
+function renderActive(){
+  const L=[...activePasses.entries()].filter(([c,p])=>passStatus(p)==='activo').sort((a,b)=>a[1].expira-b[1].expira);
+  $('#activeList').innerHTML=L.length?L.map(([c,p])=>{const h=users.get(p.uid)||{};return `<div class="item" data-c="${c}" style="cursor:pointer"><div><b>${esc(p.visitante)}</b>${p.tablilla?` · <span class="muted">${esc(fmtPlate(p.tablilla))}</span>`:''}
+    <small>→ ${esc(h.nombre||'')} · ${esc(h.unidad||'')} · ${left(p.expira)}</small></div><span class="pill ${p.usos?'p-ok':'p-vis'}">${p.usos?'ENTRÓ':'ESPERADO'}</span></div>`}).join(''):'<div class="empty">No hay visitas activas</div>';
+  $$('#activeList [data-c]').forEach(el=>el.onclick=()=>{$('#codeIn').value=fmtCode(el.dataset.c);$('#verify').click();scrollTo(0,0)});
+}
+
+/* ================= PASES: inquilino ================= */
+let hours=8;
+$$('#dur button').forEach(b=>b.onclick=()=>{hours=+b.dataset.h;$$('#dur button').forEach(x=>x.classList.toggle('act',x===b))});
+const ALPHA='ACDEFHJKMNPRTUVWXY34679';
+const newCode=()=>{const a=new Uint32Array(6);crypto.getRandomValues(a);return [...a].map(n=>ALPHA[n%ALPHA.length]).join('')};
+$('#genPass').onclick=async()=>{
+  const visitante=$('#v_nombre').value.trim();if(!visitante){toast('Escribe el nombre del visitante');return}
+  $('#genPass').disabled=true;
+  const now=Date.now();
+  const data={uid,visitante,telefono:$('#v_tel').value.trim(),tablilla:norm($('#v_tab').value),nota:$('#v_nota').value.trim(),horas:hours,creado:now,expira:now+hours*36e5,usos:0,cancelado:false};
+  let code=null;
+  for(let i=0;i<4&&!code;i++){const c=newCode();try{await setDoc(doc(db,'pases',c),data);code=c}catch(e){if(i===3)toast('No se pudo crear el pase')}}
+  $('#genPass').disabled=false;
+  if(!code)return;
+  ['#v_nombre','#v_tel','#v_tab','#v_nota'].forEach(s=>$(s).value='');
+  openShare(code,data);
+};
+const waPhone=t=>{let d=String(t||'').replace(/\D/g,'');if(d.length===10)d='1'+d;return d};
+function shareMsg(code,p){const lugar=config.lugar?` en ${config.lugar}`:'';return `Hola ${p.visitante} 👋\nTienes un pase de visita${lugar}, unidad ${me.unidad} (${me.nombre}).\n\n🔑 Código: ${fmtCode(code)}\n⏰ Válido hasta: ${fmtTime(p.expira)}\n\nMuéstrale este código al guardia en la entrada.`}
+function openShare(code,p){
+  const msg=shareMsg(code,p),ph=waPhone(p.telefono);
+  const wa=`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,sms=`sms:${ph?'+'+ph:''}?&body=${encodeURIComponent(msg)}`;
+  $('#sheet').innerHTML=`<h2>✅ Pase listo</h2><p class="muted">Para <b>${esc(p.visitante)}</b> · ${p.horas} h, hasta ${fmtTime(p.expira)}</p>
+    <div class="code">${esc(fmtCode(code))}</div>
+    <a class="btn wa big" href="${wa}" target="_blank" rel="noopener">💬 Enviar por WhatsApp</a>
+    <div class="row" style="margin-top:8px"><a class="btn sec" href="${sms}">✉️ Enviar por texto</a><button class="btn sec" id="cpMsg">⧉ Copiar</button></div>
+    ${navigator.share?`<button class="btn sec" style="width:100%;margin-top:8px" id="shNative">📤 Compartir…</button>`:''}
+    <button class="btn sec" style="width:100%;margin-top:8px" id="shClose">Listo</button>`;
+  $('#modal').classList.add('open');
+  $('#cpMsg').onclick=async()=>{try{await navigator.clipboard.writeText(msg);toast('Mensaje copiado')}catch(e){toast('No se pudo copiar')}};
+  $('#shNative')&&($('#shNative').onclick=()=>navigator.share({text:msg}).catch(()=>{}));
+  $('#shClose').onclick=closeModal;
+}
+function renderMine(){
+  $('#myList').innerHTML=myPasses.length?myPasses.map(p=>{const st=passStatus(p);return `<div class="item"><div style="min-width:0"><b>${esc(p.visitante)}</b> <span class="muted" style="font-family:monospace">${esc(fmtCode(p.code))}</span>
+    <small>${st==='activo'?left(p.expira):'hasta '+fmtTime(p.expira)}${p.usos?` · entró ${p.usos}×`:''}</small>
+    ${st==='activo'?`<div style="margin-top:6px"><button class="btn sec sm" data-sh="${p.code}">Compartir</button> <button class="btn sec sm" data-cx="${p.code}">Cancelar</button></div>`:''}</div>
+    <span class="pill ${st==='activo'?'p-ok':st==='vencido'?'p-mut':'p-warn'}">${st.toUpperCase()}</span></div>`}).join(''):'<div class="empty">Aún no has creado pases</div>';
+  $$('#myList [data-sh]').forEach(b=>b.onclick=()=>{const p=myPasses.find(x=>x.code===b.dataset.sh);openShare(p.code,p)});
+  $$('#myList [data-cx]').forEach(b=>b.onclick=async()=>{if(!b.dataset.c){b.dataset.c=1;b.textContent='¿Seguro? Toca otra vez';return}
+    try{await updateDoc(doc(db,'pases',b.dataset.cx),{cancelado:true});toast('Pase cancelado')}catch(e){toast('No se pudo cancelar')}});
+}
+setInterval(()=>{if($('#t-vis').classList.contains('act'))renderMine();if($('#t-code').classList.contains('act'))renderActive()},60000);
+
+/* ================= REGISTRO ================= */
+let logging=false;
+async function addLog(e,silent){
+  if(logging&&!silent)return;logging=true;
+  try{await addDoc(collection(db,'accesos'),{nombre:'',unidad:'',...e,guardia:me.nombre||auth.currentUser.email,guardiaUid:uid,ts:Date.now()});
+    if(!silent){toast(e.tipo==='entrada'?'Entrada registrada':e.tipo==='salida'?'Salida registrada':'Intento registrado');resetGate()}}
+  catch(err){toast('No se pudo guardar el registro')}
+  logging=false;
+}
+$('#logFilter').onchange=renderLog;
+function renderLog(){
+  const f=$('#logFilter').value,L=logs.filter(l=>!f||(f==='pase'?l.codigo:f==='auto'?l.auto:l.tipo===f));
+  $('#logList').innerHTML=L.length?L.map(l=>`<div class="item"><div>${l.tablilla?`<span class="plate s">${esc(fmtPlate(l.tablilla))}</span>`:'<span class="muted">Sin tablilla</span>'}
+    <small>${esc(l.nombre||'No registrado')}${l.unidad?' · '+esc(l.unidad):''}${l.codigo?` · 🎟️ visita a ${esc(l.anfitrion)} (${esc(fmtCode(l.codigo))})`:''}<br>${fmtTime(l.ts)} · ${l.auto?'🤖 automático':esc(l.guardia||'')}</small></div>
+    <span class="pill ${l.tipo==='entrada'?'p-ok':l.tipo==='salida'?'p-mut':'p-bad'}">${l.tipo==='entrada'?'ENTRADA':l.tipo==='salida'?'SALIDA':'NO REG.'}</span></div>`).join(''):'<div class="empty">Sin registros todavía</div>';
+}
+
+/* ================= USUARIOS (admin) ================= */
+$('#uq').oninput=renderUsers;
+function renderUsers(){
+  if(!isAdmin())return;
+  const all=[...users.entries()];
+  const pend=all.filter(([id,u])=>!u.aprobado&&!u.rechazado);
+  $('#pendList').innerHTML=pend.length?pend.map(([id,u])=>`<div class="item"><div><b>${esc(u.nombre)}</b><small>${esc(u.unidad||'')} · ${esc(u.email||'')} · ${esc(u.telefono||'')}</small></div>
+    <div style="display:flex;gap:6px"><button class="btn ok sm" data-ap="${id}">Aprobar</button><button class="btn sec sm" data-rj="${id}">✕</button></div></div>`).join(''):'<div class="empty">Nadie esperando</div>';
+  const q=$('#uq').value.trim().toLowerCase();
+  const L=all.filter(([id,u])=>u.aprobado&&(!q||[u.nombre,u.unidad,u.email].join(' ').toLowerCase().includes(q))).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
+  $('#userList').innerHTML=L.length?L.map(([id,u])=>`<div class="item"><div><b>${esc(u.nombre)}</b><small>${esc(u.unidad||'')} · ${esc(u.email||'')}</small></div>
+    <select data-rol="${id}" style="width:auto;padding:6px" ${id===uid?'disabled':''}>${['inquilino','guardia','admin'].map(r=>`<option ${u.rol===r?'selected':''}>${r}</option>`).join('')}<option value="__off">desactivar</option></select></div>`).join(''):'<div class="empty">Sin usuarios</div>';
+  $$('[data-ap]').forEach(b=>b.onclick=()=>updateDoc(doc(db,'users',b.dataset.ap),{aprobado:true}).then(()=>toast('Aprobado')).catch(()=>toast('Error')));
+  $$('[data-rj]').forEach(b=>b.onclick=()=>updateDoc(doc(db,'users',b.dataset.rj),{rechazado:true}).then(()=>toast('Rechazado')).catch(()=>toast('Error')));
+  $$('[data-rol]').forEach(s=>s.onchange=()=>{const v=s.value;updateDoc(doc(db,'users',s.dataset.rol),v==='__off'?{aprobado:false,rechazado:true}:{rol:v}).then(()=>toast('Actualizado')).catch(()=>toast('Error'))});
+}
+
+/* ================= VEHICULOS (admin) ================= */
+$('#q').oninput=renderVeh;
+function renderVeh(){
+  const q=$('#q').value.trim().toLowerCase(),qn=norm(q);
+  const arr=[...vehicles.entries()].filter(([k,v])=>!q||(qn&&k.includes(qn))||[v.nombre,v.unidad,v.telefono].join(' ').toLowerCase().includes(q)).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
+  $('#vehCount').textContent=`${vehicles.size} vehículo${vehicles.size===1?'':'s'} registrado${vehicles.size===1?'':'s'}`;
+  $('#vehList').innerHTML=arr.length?arr.map(([k,v])=>{const st=v.estado||'autorizado';return `<div class="item" data-k="${k}" style="cursor:pointer">
+    <div><span class="plate s">${esc(fmtPlate(k))}</span><small><b style="color:var(--tx)">${esc(v.nombre||'—')}</b>${v.unidad?' · '+esc(v.unidad):''}<br>${esc([v.marca,v.modelo,v.color].filter(Boolean).join(' '))}</small></div>
+    <span class="pill ${st==='bloqueado'?'p-bad':st==='visitante'?'p-warn':'p-ok'}">${st.toUpperCase()}</span></div>`}).join(''):`<div class="empty">${vehicles.size?'Sin resultados':'Aún no hay vehículos. Toca “＋ Nuevo” o importa un CSV.'}</div>`;
+  $$('#vehList [data-k]').forEach(el=>el.onclick=()=>isAdmin()&&openForm(el.dataset.k));
+}
+$('#addVeh').onclick=()=>openForm('');
+const F=['nombre','telefono','unidad','marca','modelo','color','notas'];
+function openForm(p){
+  const v=vehicles.get(p)||{},isEdit=vehicles.has(p);
+  $('#sheet').innerHTML=`<h2>${isEdit?'Editar vehículo':'Nuevo vehículo'}</h2>
+    <label>Tablilla *</label><input id="f_t" class="plateIn" value="${esc(fmtPlate(p))}" ${isEdit?'readonly':''}>
+    <label>Nombre del dueño *</label><input id="f_nombre" value="${esc(v.nombre)}">
+    <div class="row"><div><label>Teléfono</label><input id="f_telefono" type="tel" value="${esc(v.telefono)}"></div><div><label>Unidad / Apto</label><input id="f_unidad" value="${esc(v.unidad)}"></div></div>
+    <div class="row"><div><label>Marca</label><input id="f_marca" value="${esc(v.marca)}"></div><div><label>Modelo</label><input id="f_modelo" value="${esc(v.modelo)}"></div></div>
+    <div class="row"><div><label>Color</label><input id="f_color" value="${esc(v.color)}"></div><div><label>Estado</label><select id="f_estado">${['autorizado','visitante','bloqueado'].map(s=>`<option ${(v.estado||'autorizado')===s?'selected':''}>${s}</option>`).join('')}</select></div></div>
+    <label>Notas para el guardia</label><textarea id="f_notas" rows="2">${esc(v.notas)}</textarea>
+    <div class="row" style="margin-top:14px"><button class="btn sec" id="f_cancel">Cancelar</button><button class="btn" id="f_save">Guardar</button></div>
+    ${isEdit?`<button class="btn bad sm" style="margin-top:14px;width:100%" id="f_del">Eliminar vehículo</button>`:''}`;
+  $('#modal').classList.add('open');
+  $('#f_cancel').onclick=closeModal;
+  $('#f_save').onclick=async()=>{
+    const k=norm($('#f_t').value),nombre=$('#f_nombre').value.trim();
+    if(!k||!nombre){toast('Tablilla y nombre son requeridos');return}
+    const d={estado:$('#f_estado').value,actualizado:Date.now()};F.forEach(f=>d[f]=$('#f_'+f).value.trim());
+    $('#f_save').disabled=true;
+    try{await setDoc(doc(db,'vehiculos',k),d);toast('Guardado');closeModal()}catch(e){toast('No se pudo guardar');$('#f_save').disabled=false}
+  };
+  $('#f_del')&&($('#f_del').onclick=()=>{const b=$('#f_del');if(!b.dataset.c){b.dataset.c=1;b.textContent='Toca otra vez para confirmar';return}
+    deleteDoc(doc(db,'vehiculos',p)).then(()=>{toast('Eliminado');closeModal()}).catch(()=>toast('No se pudo eliminar'))});
+}
+function closeModal(){$('#modal').classList.remove('open')}
+$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
+
+function parseCSV(t){const rows=[];let r=[],c='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}else if(ch==='"')q=true;else if(ch===','||ch===';'){r.push(c);c=''}else if(ch==='\n'){r.push(c);rows.push(r);r=[];c=''}else if(ch!=='\r')c+=ch}if(c||r.length){r.push(c);rows.push(r)}return rows.filter(x=>x.some(y=>y.trim()))}
+const strip=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+$('#csv').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  const rows=parseCSV(await f.text());if(rows.length<2){toast('CSV vacío');return}
+  const H=rows[0].map(strip),ix=n=>H.findIndex(h=>h===n||h.startsWith(n));
+  const it=ix('tablilla')>=0?ix('tablilla'):ix('placa');if(it<0){toast('Falta la columna "tablilla"');return}
+  let n=0;toast('Importando…');
+  for(const r of rows.slice(1)){const k=norm(r[it]);if(!k)continue;
+    const d={actualizado:Date.now()};F.forEach(f=>{const j=ix(f);d[f]=j>=0?(r[j]||'').trim():''});
+    const je=ix('estado'),es=je>=0?strip(r[je]||''):'';d.estado=['visitante','bloqueado'].includes(es)?es:'autorizado';
+    try{await setDoc(doc(db,'vehiculos',k),d);n++}catch(err){}}
+  toast(`${n} vehículos importados`);
+};
+$('#dlCsv').onclick=()=>{
+  const cols=['tablilla','nombre','telefono','unidad','marca','modelo','color','estado','notas'],q=s=>/[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+  const out=[cols.join(','),...[...vehicles.entries()].map(([k,v])=>cols.map(c=>q(String(c==='tablilla'?k:v[c]||''))).join(','))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+out],{type:'text/csv'}));a.download='vehiculos.csv';a.click();
+};
+</script>
+</body>
+</html>
