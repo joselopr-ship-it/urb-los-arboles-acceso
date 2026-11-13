@@ -3,74 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Control de Acceso</title>
+<title>Acceso Los Árboles · Service 4 You</title>
+<meta name="theme-color" content="#eef3fb">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
-:root{--bg:#0f172a;--card:#1e293b;--line:#334155;--tx:#f1f5f9;--mut:#94a3b8;--ok:#16a34a;--bad:#dc2626;--warn:#d97706;--pri:#2563eb;--wa:#25d366}
+:root{--blue:#1d5dff;--blue-700:#1648cc;--blue-900:#0f326b;--navy:#0d1b2a;--navy-800:#14273c;--orange:#ff7a00;--bg-base:#eef3fb;--paper:rgba(255,255,255,.55);--card:rgba(255,255,255,.66);--card-solid:#fff;--side:rgba(13,27,52,.9);--th:rgba(29,93,255,.06);--input-bg:rgba(255,255,255,.85);--ink:#0d1b2a;--text-2:#2a3d57;--mut:#56698a;--line:rgba(15,50,107,.12);--ok:#12a66a;--warn:#f5a300;--bad:#e74646;--info:#0090ff;--st-ok:#0d7a4e;--st-info:#006bbd;--st-warn:#926100;--st-bad:#cd1b1b;--shadow-rest:0 1px 1px rgba(15,50,107,.04),0 10px 30px rgba(15,50,107,.08);--shadow-hover:0 2px 4px rgba(15,50,107,.06),0 18px 40px rgba(15,50,107,.14);--blur:saturate(160%) blur(18px);--sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--brand:Archivo,Inter,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;--pri:var(--blue);--tx:var(--ink)}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:76px}
-header{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}
-header h1{font-size:17px;margin:0}
-.chip{font-size:11px;padding:3px 8px;border-radius:99px;background:#334155;color:var(--mut);white-space:nowrap}
-.chip.on{background:#14532d;color:#bbf7d0}.chip.off{background:#7f1d1d;color:#fecaca}
-main{padding:14px;max-width:720px;margin:0 auto}
+body{margin:0;font-family:var(--sans);font-size:15px;line-height:1.45;color:var(--ink);font-variant-numeric:tabular-nums;padding-bottom:84px;min-height:100vh;background:radial-gradient(600px 300px at 90% -10%,rgba(255,122,0,.16),transparent 60%),radial-gradient(700px 420px at -10% 0%,rgba(29,93,255,.20),transparent 60%),var(--bg-base);background-attachment:fixed}
+header{position:sticky;top:0;z-index:5;height:62px;padding:0 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--paper);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--blue-900));display:grid;place-items:center;color:#fff;font:800 13px/1 var(--brand);position:relative;flex:none}
+.mark::after{content:"";position:absolute;right:-3px;top:-3px;width:10px;height:10px;border-radius:50%;background:var(--orange);border:2px solid #fff}
+.mark.lg{width:64px;height:64px;border-radius:18px;font-size:22px}.mark.lg::after{width:16px;height:16px;right:-4px;top:-4px;border-width:3px}
+header h1{font:800 17px/1.15 var(--brand);letter-spacing:-.01em;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand small{display:block;font:700 10.5px/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.chip{display:inline-flex;align-items:center;gap:6px;font:800 11px/1.3 var(--sans);letter-spacing:.03em;text-transform:uppercase;color:var(--mut);white-space:nowrap}
+.chip::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.chip.on{color:var(--st-ok)}.chip.off{color:var(--st-bad)}
+main{padding:18px 16px;max-width:760px;margin:0 auto}
 .tab{display:none}.tab.act{display:block}
-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#0b1222;border-top:1px solid var(--line)}
-nav button{flex:1;background:none;border:0;color:var(--mut);padding:10px 0 14px;font-size:11px}
-nav button b{display:block;font-size:20px;font-weight:400}
-nav button.act{color:#60a5fa}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:12px 16px;font-size:15px;font-weight:600;color:#fff;background:var(--pri);cursor:pointer;text-decoration:none}
-.btn.big{width:100%;padding:20px;font-size:18px;border-radius:14px}
-.btn.sec{background:#334155}.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}.btn.wa{background:var(--wa);color:#04210f}.btn.sm{padding:8px 12px;font-size:13px}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:6;display:flex;gap:4px;padding:8px 8px 12px;background:var(--side);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;border-radius:10px;color:rgba(222,232,246,.82);padding:8px 0;font:600 11px/1 var(--sans);cursor:pointer;min-height:52px;justify-content:center}
+nav button svg{width:20px;height:20px}
+nav button.act{color:#fff;background:rgba(35,118,205,.42)}
+@media (min-width:900px){
+ body{padding:0 0 0 236px}
+ nav{top:0;bottom:0;right:auto;width:236px;flex-direction:column;gap:4px;padding:84px 12px 16px}
+ nav::before{content:"Menú";font:700 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.62);padding:0 10px 8px}
+ nav button{flex:0 0 auto;flex-direction:row;justify-content:flex-start;gap:10px;height:44px;min-height:0;padding:0 12px;font-size:14px}
+ nav button svg{width:18px;height:18px}
+ header{padding:0 28px;height:68px}
+ main{padding:22px 28px 36px;max-width:900px}
+}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow-rest);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:1px solid transparent;border-radius:6px;padding:0 16px;font:700 14px/1 var(--sans);color:#fff;background:var(--blue);box-shadow:0 1px 2px rgba(9,103,217,.2);cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--blue-700)}
+.btn svg{width:18px;height:18px}
+.btn.big{width:100%;min-height:54px;font-size:16px}
+.btn.sec{background:var(--input-bg);color:var(--text-2);border-color:var(--line);box-shadow:none}.btn.sec:hover{color:var(--ink);border-color:var(--mut)}
+.btn.ok{background:var(--ok)}.btn.bad{background:transparent;color:var(--st-bad);border-color:var(--line);box-shadow:none}.btn.bad:hover{background:rgba(231,70,70,.06)}
+.btn.wa{background:#128c4f;color:#fff}.btn.wa:hover{background:#0f7742}
+.btn.sm{min-height:34px;padding:0 12px;font-size:13px}
+#genPass{background:var(--orange);color:#3a2a00}#genPass:hover{background:#ec7000}
 .btn:disabled{opacity:.5}
-input,select,textarea{width:100%;background:#0f172a;border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:11px;font-size:16px}
-label{font-size:12px;color:var(--mut);display:block;margin:10px 0 4px}
-.row{display:flex;gap:8px}.row>*{flex:1}
-.plateIn{font-size:26px;font-weight:800;letter-spacing:3px;text-align:center;text-transform:uppercase}
-.res{border-radius:14px;overflow:hidden;margin-bottom:12px}
-.res .bn{padding:16px;text-align:center;font-size:24px;font-weight:900;letter-spacing:1px}
-.res.ok .bn{background:var(--ok)}.res.bad .bn{background:var(--bad)}.res.warn .bn{background:var(--warn)}.res.vis .bn{background:#1d4ed8}
-.res .bd{background:var(--card);padding:14px;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px}
-.res img{width:100%;max-height:180px;object-fit:contain;background:#000;border-radius:10px;margin-bottom:10px}
-.plate{display:inline-block;background:#f8fafc;color:#0f172a;font-weight:900;letter-spacing:3px;padding:4px 12px;border-radius:6px;border:2px solid #0f172a;font-size:22px}
-.plate.s{font-size:14px;padding:2px 8px;letter-spacing:2px}
-.code{font-family:ui-monospace,Menlo,monospace;font-size:40px;font-weight:900;letter-spacing:8px;text-align:center;background:#0f172a;border:2px dashed #60a5fa;border-radius:12px;padding:12px;margin:10px 0;color:#bfdbfe}
-.kv{display:grid;grid-template-columns:115px 1fr;gap:6px 10px;margin:12px 0;font-size:15px}
-.kv dt{color:var(--mut)}.kv dd{margin:0;font-weight:600}
-.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+input,select,textarea{width:100%;background:var(--input-bg);border:1.5px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font:500 16px/1.3 var(--sans)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+label{font:700 11px/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);display:block;margin:14px 0 6px}
+.row{display:flex;gap:10px}.row>*{flex:1;min-width:0}
+.plateIn{font:700 24px/1 var(--mono);letter-spacing:.12em;text-align:center;text-transform:uppercase}
+.res{border-radius:18px;overflow:hidden;margin-bottom:16px;border:1px solid var(--line);background:var(--card-solid);box-shadow:var(--shadow-hover)}
+.res .bn{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;font:800 22px/1.2 var(--sans);letter-spacing:.03em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+.res .bn::before{content:"";width:14px;height:14px;border-radius:50%;background:currentColor;flex:none}
+.res.ok .bn{color:var(--st-ok);background:rgba(18,166,106,.08)}.res.bad .bn{color:var(--st-bad);background:rgba(231,70,70,.07)}.res.warn .bn{color:var(--st-warn);background:rgba(245,163,0,.10)}.res.vis .bn{color:var(--st-info);background:rgba(0,144,255,.08)}
+.res .bd{padding:18px}
+.res img{width:100%;max-height:200px;object-fit:contain;background:#0b1522;border-radius:12px;margin-bottom:12px}
+.plate{display:inline-block;background:#fff;color:var(--ink);font:700 22px/1.2 var(--mono);letter-spacing:.08em;padding:5px 14px;border-radius:8px;border:2px solid var(--navy)}
+.plate.s{font-size:13px;padding:2px 8px;border-width:1.5px;letter-spacing:.06em}
+.code{font:700 40px/1 var(--mono);letter-spacing:.14em;text-align:center;background:rgba(29,93,255,.05);border:2px dashed rgba(29,93,255,.45);border-radius:14px;padding:16px 12px;margin:12px 0;color:var(--ink)}
+.kv{display:grid;grid-template-columns:115px 1fr;gap:8px 12px;margin:14px 0;font-size:15px;align-items:baseline}
+.kv dt{font:700 11px/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}.kv dd{margin:0;font-weight:600}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
 .item:last-child{border:0}
-.item small{color:var(--mut);display:block;margin-top:2px}
-.pill{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:700;white-space:nowrap}
-.p-ok{background:#14532d;color:#bbf7d0}.p-vis{background:#1e3a8a;color:#bfdbfe}.p-bad{background:#7f1d1d;color:#fecaca}.p-mut{background:#334155;color:#cbd5e1}.p-warn{background:#78350f;color:#fde68a}
-.dur{display:flex;gap:8px}.dur button{flex:1;padding:14px 0;font-size:17px;font-weight:800;border-radius:10px;border:2px solid var(--line);background:#0f172a;color:var(--tx)}
-.dur button.act{border-color:#60a5fa;background:#1e3a8a}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;z-index:9}
+.item small{color:var(--mut);display:block;margin-top:2px;font-size:12.5px}
+.pill{display:inline-flex;align-items:center;gap:7px;font:800 11.5px/1.3 var(--sans);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.p-ok{color:var(--st-ok)}.p-vis{color:var(--st-info)}.p-bad{color:var(--st-bad)}.p-mut{color:var(--mut)}.p-warn{color:var(--st-warn)}
+.dur{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.dur button{min-height:48px;font:700 16px/1 var(--sans);border-radius:9px;border:1.5px solid var(--line);background:var(--input-bg);color:var(--text-2);cursor:pointer}
+.dur button.act{border-color:var(--blue);background:rgba(29,93,255,.08);color:var(--blue)}
+.modal{position:fixed;inset:0;background:rgba(8,20,32,.55);display:none;align-items:flex-end;justify-content:center;z-index:9}
 .modal.open{display:flex}
-.sheet{background:var(--card);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
-.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#f1f5f9;color:#0f172a;padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;display:none;z-index:20}
+.sheet{background:var(--card-solid);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:20px;box-shadow:var(--shadow-hover)}
+@media (min-width:900px){.modal{align-items:center}.sheet{border-radius:18px}}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;font-size:14px;display:none;z-index:20;box-shadow:var(--shadow-hover)}
 .muted{color:var(--mut);font-size:13px}
 .empty{text-align:center;color:var(--mut);padding:24px 0}
-h2{font-size:15px;margin:0 0 10px}
+h2{font:700 15px/1.3 var(--sans);margin:0 0 12px;color:var(--ink)}
+a{color:var(--blue)}
 .hide{display:none!important}
 .wait{text-align:center;padding:30px 10px;color:var(--mut)}
-.wait .pulse{width:16px;height:16px;border-radius:50%;background:#22c55e;display:inline-block;margin-bottom:8px;animation:p 1.6s infinite}
-@keyframes p{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}100%{box-shadow:0 0 0 18px rgba(34,197,94,0)}}
+.wait .pulse{width:16px;height:16px;border-radius:50%;background:var(--ok);display:inline-block;margin-bottom:8px;animation:p 1.6s infinite}
+@keyframes p{0%{box-shadow:0 0 0 0 rgba(18,166,106,.5)}100%{box-shadow:0 0 0 18px rgba(18,166,106,0)}}
 @keyframes flash{0%{transform:scale(.97);opacity:.4}100%{transform:none;opacity:1}}
 .new{animation:flash .35s ease-out}
+.login-brand{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;margin:18px 0 22px}
+.login-brand b{font:800 21px/1.15 var(--brand);letter-spacing:-.01em}
+.login-brand small{font:700 10.5px/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
 .scan{position:fixed;inset:0;background:#000;z-index:30;display:none;flex-direction:column}
 .scan.open{display:flex}
 .scan video{flex:1;width:100%;object-fit:cover;min-height:0}
-.scan .guide{position:absolute;left:8%;right:8%;top:36%;height:20%;border:3px solid #22c55e;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
+.scan .guide{position:absolute;left:8%;right:8%;top:36%;height:20%;border:3px solid var(--ok);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
 .scan .st{position:absolute;left:0;right:0;top:calc(36% - 56px);text-align:center;color:#fff;font-weight:700;font-size:20px;text-shadow:0 1px 3px #000;padding:0 12px}
-.scan .bar{display:flex;gap:10px;padding:14px 14px 24px;background:#0b1222}
+.scan .bar{display:flex;gap:10px;padding:14px 14px 24px;background:var(--navy)}
+.scan .bar .btn.sec{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+header .row{flex:0 0 auto;gap:14px!important}header .row>*{flex:none}
+.brand small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:420px){header .chip#camChip{display:none}}
+@media (min-width:900px){nav{padding-top:24px}}
+@media (min-width:900px){body:has(#nav.hide){padding-left:0}}
 </style>
 </head>
 <body>
-<header><h1 id="ttl">🛡️ Control de Acceso</h1><div class="row" style="flex:0 0 auto;gap:6px"><span class="chip hide" id="camChip">Cámara</span><span class="chip" id="conn">…</span></div></header>
+<header><div class="brand"><div class="mark">S4</div><div style="min-width:0"><h1 id="ttl">Control de Acceso</h1><small>Los Árboles · Service 4 You</small></div></div><div class="row" style="flex:0 0 auto;gap:6px"><span class="chip hide" id="camChip">Cámara</span><span class="chip" id="conn">…</span></div></header>
 
 <main>
 <!-- ====== LOGIN ====== -->
 <section id="v-login" class="hide">
+  <div class="login-brand"><div class="mark lg">S4</div><div><b>Acceso Los Árboles</b><br><small>Service 4 You · Río Grande</small></div></div>
   <div class="card">
     <h2 id="lgTitle">Entrar</h2>
     <div id="suFields" class="hide">
@@ -81,14 +121,14 @@ h2{font-size:15px;margin:0 0 10px}
     <label>Contraseña</label><input id="lg_pass" type="password" autocomplete="current-password">
     <button class="btn big" style="margin-top:14px" id="lgBtn">Entrar</button>
     <p class="muted" style="text-align:center;margin-top:14px">
-      <a href="#" id="lgToggle" style="color:#93c5fd">¿Eres inquilino nuevo? Crea tu cuenta</a><br><br>
-      <a href="#" id="lgForgot" style="color:#93c5fd">Olvidé mi contraseña</a></p>
-    <p class="muted" id="lgErr" style="color:#fca5a5;text-align:center"></p>
+      <a href="#" id="lgToggle">¿Eres inquilino nuevo? Crea tu cuenta</a><br><br>
+      <a href="#" id="lgForgot">Olvidé mi contraseña</a></p>
+    <p class="muted" id="lgErr" style="color:var(--st-bad);text-align:center"></p>
   </div>
 </section>
 
 <section id="v-pending" class="hide">
-  <div class="card wait"><div style="font-size:40px">⏳</div><h2>Tu cuenta espera aprobación</h2>
+  <div class="card wait"><div class="mark lg" style="margin:0 auto 14px">S4</div><h2>Tu cuenta espera aprobación</h2>
   <p>La administración tiene que aprobarla antes de que puedas crear pases de visita. Esta pantalla se actualiza sola.</p>
   <button class="btn sec" id="pendOut">Salir</button></div>
 </section>
@@ -97,8 +137,8 @@ h2{font-size:15px;margin:0 0 10px}
 <section class="tab" id="t-gate">
   <div id="gateRes"><div class="card wait"><span class="pulse"></span><br>Esperando vehículos en el portón…<br><span class="muted" id="lastSeen"></span></div></div>
   <div class="card">
-    <label style="margin-top:0">Escribir la tablilla o leerla con la cámara 📷</label>
-    <div class="row"><input id="manual" class="plateIn" placeholder="ABC123" autocomplete="off" maxlength="10"><button class="btn" style="flex:0 0 auto" id="buscar">Buscar</button><button class="btn sec" style="flex:0 0 auto;font-size:20px" id="gateCam" aria-label="Leer con la cámara">📷</button></div>
+    <label style="margin-top:0">Escribir la tablilla o leerla con la cámara</label>
+    <div class="row"><input id="manual" class="plateIn" placeholder="ABC123" autocomplete="off" maxlength="10"><button class="btn" style="flex:0 0 auto" id="buscar">Buscar</button><button class="btn sec" style="flex:0 0 auto" id="gateCam" aria-label="Leer con la cámara"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button></div>
   </div>
   <div class="card"><h2>Últimas lecturas de la cámara</h2><div id="readList"><div class="empty">Sin lecturas todavía</div></div></div>
 </section>
@@ -106,9 +146,9 @@ h2{font-size:15px;margin:0 0 10px}
 <!-- ====== RONDA (guardia) ====== -->
 <section class="tab" id="t-ronda">
   <div class="card">
-    <h2>🔦 Ronda: ¿de quién es este vehículo?</h2>
-    <div class="row"><input id="rondaIn" class="plateIn" placeholder="ABC123" autocomplete="off" maxlength="10"><button class="btn" style="flex:0 0 auto" id="rondaBuscar">Buscar</button><button class="btn sec" style="flex:0 0 auto;font-size:20px" id="rondaCam" aria-label="Leer con la cámara">📷</button></div>
-    <p class="muted" style="margin:8px 0 0">Escribe la tablilla o toca 📷 para leerla con la cámara. Verás la casa y podrás llamar al dueño.</p>
+    <h2>Ronda: ¿de quién es este vehículo?</h2>
+    <div class="row"><input id="rondaIn" class="plateIn" placeholder="ABC123" autocomplete="off" maxlength="10"><button class="btn" style="flex:0 0 auto" id="rondaBuscar">Buscar</button><button class="btn sec" style="flex:0 0 auto" id="rondaCam" aria-label="Leer con la cámara"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button></div>
+    <p class="muted" style="margin:8px 0 0">Escribe la tablilla o toca el botón de cámara para leerla con la cámara. Verás la casa y podrás llamar al dueño.</p>
   </div>
   <div id="rondaRes"></div>
 </section>
@@ -116,7 +156,7 @@ h2{font-size:15px;margin:0 0 10px}
 <!-- ====== CODIGO (guardia) ====== -->
 <section class="tab" id="t-code">
   <div class="card">
-    <h2>🔑 Verificar código de visita</h2>
+    <h2>Verificar código de visita</h2>
     <input id="codeIn" class="plateIn" placeholder="CÓDIGO" autocomplete="off" maxlength="8">
     <button class="btn big" style="margin-top:10px" id="verify">Verificar</button>
   </div>
@@ -154,12 +194,12 @@ h2{font-size:15px;margin:0 0 10px}
 <section class="tab" id="t-vis">
   <div id="arrivals"></div>
   <div class="card" id="notifCard">
-    <h2>🔔 Avisos de llegada</h2>
+    <h2>Avisos de llegada</h2>
     <p class="muted" style="margin:0 0 8px">Cuando el guardia registre la entrada de tu visita, te sale un aviso en esta app.</p>
     <button class="btn sec" style="width:100%" id="notifBtn">Activar notificaciones</button>
   </div>
   <div class="card" id="newPass">
-    <h2>➕ Nueva visita</h2>
+    <h2>Nueva visita</h2>
     <label>Nombre del visitante *</label><input id="v_nombre" placeholder="Ej. María Rivera">
     <div class="row"><div><label>Celular del visitante</label><input id="v_tel" type="tel" placeholder="787-555-1234"></div><div><label>Tablilla (opcional)</label><input id="v_tab" style="text-transform:uppercase" placeholder="ABC123"></div></div>
     <label>¿Por cuánto tiempo?</label>
@@ -169,7 +209,7 @@ h2{font-size:15px;margin:0 0 10px}
     <p class="muted" style="margin-top:8px">Si pones la tablilla, la cámara del portón reconoce al visitante sola.</p>
   </div>
   <div class="card" id="myVehCard">
-    <h2>🚗 Mis vehículos</h2>
+    <h2>Mis vehículos</h2>
     <p class="muted" style="margin:0 0 6px">Regístralos para que el guardia te pueda localizar si tu carro necesita moverse.</p>
     <div id="myVehList"></div>
     <div class="row" style="margin-top:8px"><div><label>Tablilla *</label><input id="mv_tab" style="text-transform:uppercase" placeholder="ABC123"></div><div><label>Marca</label><input id="mv_marca" placeholder="Toyota"></div></div>
@@ -181,18 +221,18 @@ h2{font-size:15px;margin:0 0 10px}
 
 <!-- ====== AJUSTES ====== -->
 <section class="tab" id="t-set">
-  <div class="card"><h2>👤 Mi cuenta</h2>
+  <div class="card"><h2>Mi cuenta</h2>
     <div class="row"><div><label>Nombre</label><input id="me_nombre"></div><div><label>Unidad / Apto</label><input id="me_unidad"></div></div>
     <label>Teléfono</label><input id="me_tel" type="tel">
     <div class="row" style="margin-top:12px"><button class="btn" id="meSave">Guardar</button><button class="btn sec" id="logout">Salir</button></div>
     <p class="muted" id="meInfo"></p>
   </div>
-  <div class="card staff"><h2>🔊 Portón</h2>
+  <div class="card staff"><h2>Portón</h2>
     <button class="btn sec" id="soundBtn">Activar sonido de alertas</button>
     <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--tx);margin-top:12px"><input type="checkbox" id="autoLog" style="width:auto"> Registrar entrada automática de vehículos autorizados</label>
     <p class="muted">Se guarda en este dispositivo. Los no registrados y bloqueados siempre esperan al guardia.</p>
   </div>
-  <div class="card admin"><h2>🏢 Nombre del lugar</h2>
+  <div class="card admin"><h2>Nombre del lugar</h2>
     <input id="cfg_lugar" placeholder="Ej. Condominio Villas Asturias">
     <button class="btn sm" style="margin-top:8px" id="cfgSave">Guardar</button>
     <p class="muted">Aparece en el mensaje que el inquilino envía al visitante.</p>
@@ -206,7 +246,7 @@ h2{font-size:15px;margin:0 0 10px}
 <nav id="nav" class="hide"></nav>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <div class="scan" id="scan"><video id="scanV" playsinline autoplay muted></video><div class="guide"></div><div class="st" id="scanSt">Apunta a la tablilla</div>
-<div class="bar"><button class="btn sec" style="flex:1" id="scanX">Cancelar</button><button class="btn" style="flex:1" id="scanCap">📸 Capturar</button></div></div>
+<div class="bar"><button class="btn sec" style="flex:1" id="scanX">Cancelar</button><button class="btn" style="flex:1" id="scanCap">Capturar</button></div></div>
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -306,7 +346,7 @@ function start(){
   const onErr=e=>{console.error(e);$('#conn').textContent='Sin conexión';$('#conn').className='chip off'};
   dataUnsubs.push(onSnapshot(doc(db,'config','general'),s=>{config=s.exists()?s.data():{};$('#cfg_lugar').value=config.lugar||''},()=>{}));
   if(isStaff()){
-    $('#ttl').textContent='🛡️ Portón';$('#camChip').classList.remove('hide');
+    $('#ttl').textContent='Portón';$('#camChip').classList.remove('hide');
     dataUnsubs.push(onSnapshot(collection(db,'vehiculos'),s=>{vehicles=new Map(s.docs.map(d=>[d.id,d.data()]));renderVeh()},onErr));
     dataUnsubs.push(onSnapshot(query(collection(db,'accesos'),orderBy('ts','desc'),limit(200)),s=>{logs=s.docs.map(d=>({id:d.id,...d.data()}));renderLog()},onErr));
     dataUnsubs.push(onSnapshot(query(collection(db,'pases'),where('expira','>',Date.now())),s=>{activePasses=new Map(s.docs.map(d=>[d.id,d.data()]));renderActive()},onErr));
@@ -317,7 +357,7 @@ function start(){
     },onErr));
     buildNav(isAdmin()?['gate','ronda','code','veh','log','users','set']:['gate','ronda','code','log','set']);
   } else {
-    $('#ttl').textContent='🎟️ Pases de Visita';
+    $('#ttl').textContent='Mis visitas';
     const usosPrev={};
     dataUnsubs.push(onSnapshot(query(collection(db,'pases'),where('uid','==',uid)),s=>{
       s.docChanges().forEach(ch=>{const d=ch.doc.data();if(ch.type==='modified'&&(d.usos||0)>(usosPrev[ch.doc.id]||0))notifyArrival(d);usosPrev[ch.doc.id]=d.usos||0});
@@ -326,9 +366,9 @@ function start(){
     buildNav(['vis','set']);
   }
 }
-const TABS={gate:['🚗','Portón'],ronda:['🔦','Ronda'],code:['🔑','Código'],veh:['📇','Vehículos'],log:['📋','Registro'],users:['👥','Usuarios'],vis:['🎟️','Visitas'],set:['⚙️','Ajustes']};
+const TABS={gate:['<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5M20 21V5M4 9h16M4 14h16M9 9v5M14 9v5"/></svg>','Portón'],ronda:['<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>','Ronda'],code:['<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>','Código'],veh:['<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2-5h14l2 5v5H3z"/><circle cx="7.5" cy="15.5" r="1.2"/><circle cx="16.5" cy="15.5" r="1.2"/></svg>','Vehículos'],log:['<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>','Registro'],users:['<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c1-4 4-6 7-6s6 2 7 6M17 4a4 4 0 0 1 0 8M22 21c-.5-2.5-2-4.5-4-5.5"/></svg>','Usuarios'],vis:['<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M9 6v12"/></svg>','Visitas'],set:['<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>','Ajustes']};
 function buildNav(t){
-  $('#nav').innerHTML=t.map(k=>`<button data-t="${k}"><b>${TABS[k][0]}</b>${TABS[k][1]}</button>`).join('');
+  $('#nav').innerHTML=t.map(k=>`<button data-t="${k}">${TABS[k][0]}<span>${TABS[k][1]}</span></button>`).join('');
   $('#nav').classList.remove('hide');
   $$('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.t));
   go(t[0]);
@@ -391,7 +431,7 @@ function renderVehicleCard(p,r,manual){
   const meta=r&&!r.manual?`<p class="muted" style="text-align:center;margin:6px 0 0">📷 ${esc(r.camara||'Cámara')} · ${fmtTime(r.ts)}${r.confianza?` · ${Math.round(r.confianza*100)}%`:''}${norm(r.placa)!==p?` · leyó ${esc(fmtPlate(r.placa))}`:''}</p>`:'';
   if(!v){
     const n=nearPlate(p);
-    box.innerHTML=`<div class="res bad new"><div class="bn">⛔ NO REGISTRADO</div><div class="bd">${imgTag(r)}
+    box.innerHTML=`<div class="res bad new"><div class="bn">NO REGISTRADO</div><div class="bd">${imgTag(r)}
       <div style="text-align:center"><span class="plate">${esc(fmtPlate(p))}</span></div>${meta}
       <p class="muted" style="text-align:center">No está en la base de datos ni tiene pase. Pide el código de visita.</p>
       ${n?`<button class="btn sec" style="width:100%;margin-bottom:8px" id="useNear">¿Es ${esc(fmtPlate(n))} · ${esc(vehicles.get(n).nombre||'')}?</button>`:''}
@@ -404,18 +444,18 @@ function renderVehicleCard(p,r,manual){
     beep('bad');navigator.vibrate&&navigator.vibrate([200,100,200]);return;
   }
   const st=v.estado||'autorizado',cls=st==='bloqueado'?'bad':st==='visitante'?'warn':'ok';
-  const lbl=st==='bloqueado'?'🚫 ACCESO BLOQUEADO':st==='visitante'?'🟠 VISITANTE':'✅ AUTORIZADO';
+  const lbl=st==='bloqueado'?'ACCESO BLOQUEADO':st==='visitante'?'VISITANTE':'AUTORIZADO';
   const last=logs.find(l=>l.tablilla===p);
   const auto=!manual&&st==='autorizado'&&$('#autoLog').checked;
   box.innerHTML=`<div class="res ${cls} new"><div class="bn">${lbl}</div><div class="bd">${imgTag(r)}
     <div style="text-align:center"><span class="plate">${esc(fmtPlate(p))}</span></div>${meta}
     <dl class="kv"><dt>Dueño</dt><dd style="font-size:19px">${esc(v.nombre||'—')}</dd>
       <dt>Unidad / Apto</dt><dd>${esc(v.unidad||'—')}</dd>
-      <dt>Teléfono</dt><dd>${v.telefono?`<a style="color:#93c5fd" href="${telHref(v.telefono)}">📞 ${esc(v.telefono)}</a>`:'—'}</dd>
+      <dt>Teléfono</dt><dd>${v.telefono?`<a href="${telHref(v.telefono)}">${esc(v.telefono)}</a>`:'—'}</dd>
       <dt>Vehículo</dt><dd>${esc([v.marca,v.modelo,v.color].filter(Boolean).join(' · ')||'—')}</dd>
-      ${v.notas?`<dt>Notas</dt><dd style="color:#fde68a">${esc(v.notas)}</dd>`:''}
+      ${v.notas?`<dt>Notas</dt><dd style="color:var(--st-warn)">${esc(v.notas)}</dd>`:''}
       ${last?`<dt>Último mov.</dt><dd class="muted">${last.tipo==='entrada'?'Entró':last.tipo==='salida'?'Salió':'Intento'} · ${fmtTime(last.ts)}</dd>`:''}</dl>
-    ${auto?`<p style="text-align:center;color:#86efac;font-weight:700">✔ Entrada registrada automáticamente</p>`:`<div class="row"><button class="btn ok" id="in" ${st==='bloqueado'?'disabled':''}>⬇ Entrada</button><button class="btn sec" id="out">⬆ Salida</button></div>`}
+    ${auto?`<p style="text-align:center;color:var(--st-ok);font-weight:700">Entrada registrada automáticamente</p>`:`<div class="row"><button class="btn ok" id="in" ${st==='bloqueado'?'disabled':''}>⬇ Entrada</button><button class="btn sec" id="out">⬆ Salida</button></div>`}
     ${isAdmin()?`<button class="btn sec sm" style="margin-top:10px;width:100%" id="editThis">✎ Editar datos</button>`:''}</div></div>`;
   const base={tablilla:p,nombre:v.nombre||'',unidad:v.unidad||'',lectura:r&&!r.manual?r.id:null};
   if(auto)addLog({tipo:'entrada',...base,auto:true},true);
@@ -431,13 +471,13 @@ $('#verify').onclick=async()=>{
   const c=norm($('#codeIn').value);if(!c)return;
   let p=activePasses.get(c);
   if(!p){try{const s=await getDoc(doc(db,'pases',c));if(s.exists())p=s.data()}catch(e){}}
-  if(!p){$('#codeRes').innerHTML=`<div class="res bad new"><div class="bn">⛔ CÓDIGO NO EXISTE</div><div class="bd"><div class="code">${esc(fmtCode(c))}</div><p class="muted" style="text-align:center">Verifica que lo escribió bien. Si sigue igual, llama al inquilino.</p></div></div>`;beep('bad');return}
+  if(!p){$('#codeRes').innerHTML=`<div class="res bad new"><div class="bn">CÓDIGO NO EXISTE</div><div class="bd"><div class="code">${esc(fmtCode(c))}</div><p class="muted" style="text-align:center">Verifica que lo escribió bien. Si sigue igual, llama al inquilino.</p></div></div>`;beep('bad');return}
   renderPassCard({code:c,...p},'#codeRes');
 };
 $('#codeIn').onkeydown=e=>{if(e.key==='Enter')$('#verify').click()};
 function renderPassCard(x,target,r){
   const st=passStatus(x),host=users.get(x.uid)||{};
-  const cls=st==='activo'?'vis':'bad',lbl=st==='activo'?'🎟️ VISITA CON PASE':st==='vencido'?'⌛ PASE VENCIDO':'🚫 PASE CANCELADO';
+  const cls=st==='activo'?'vis':'bad',lbl=st==='activo'?'VISITA CON PASE':st==='vencido'?'PASE VENCIDO':'PASE CANCELADO';
   $(target).innerHTML=`<div class="res ${cls} new"><div class="bn">${lbl}</div><div class="bd">${imgTag(r)}
     <div class="code" style="font-size:26px">${esc(fmtCode(x.code))}</div>
     <dl class="kv"><dt>Visitante</dt><dd style="font-size:19px">${esc(x.visitante)}</dd>
@@ -447,7 +487,7 @@ function renderPassCard(x,target,r){
       <dt>Unidad / Apto</dt><dd>${esc(host.unidad||'—')}</dd>
       ${host.telefono?`<dt>Tel. inquilino</dt><dd>${esc(host.telefono)}</dd>`:''}
       <dt>Válido hasta</dt><dd>${fmtTime(x.expira)} <span class="muted">(${left(x.expira)})</span></dd>
-      ${x.nota?`<dt>Nota</dt><dd style="color:#fde68a">${esc(x.nota)}</dd>`:''}
+      ${x.nota?`<dt>Nota</dt><dd style="color:var(--st-warn)">${esc(x.nota)}</dd>`:''}
       <dt>Usado</dt><dd>${x.usos?`${x.usos} vez/veces · última ${fmtTime(x.ultimaEntrada)}`:'Nunca'}</dd></dl>
     ${st==='activo'?`<div class="row"><button class="btn ok" id="pIn">⬇ Entrada</button><button class="btn sec" id="pOut">⬆ Salida</button></div>`:''}</div></div>`;
   beep(st==='activo'?'vis':'bad');
@@ -526,7 +566,7 @@ function notifyArrival(p){
   const hora=new Date(p.ultimaEntrada||Date.now()).toLocaleTimeString('es-PR',{hour:'numeric',minute:'2-digit'});
   const txt=`${p.visitante} entró por el portón a las ${hora}.`;
   const el=document.createElement('div');el.className='res ok new';
-  el.innerHTML=`<div class="bn" style="font-size:20px">🚗 Llegó tu visita</div><div class="bd"><p style="margin:0 0 10px;font-size:17px">${esc(txt)}</p><button class="btn sec sm" style="width:100%">Entendido</button></div>`;
+  el.innerHTML=`<div class="bn" style="font-size:20px">Llegó tu visita</div><div class="bd"><p style="margin:0 0 10px;font-size:17px">${esc(txt)}</p><button class="btn sec sm" style="width:100%">Entendido</button></div>`;
   el.querySelector('button').onclick=()=>el.remove();
   $('#arrivals').prepend(el);
   toast('🚗 '+txt);beep('vis');navigator.vibrate&&navigator.vibrate([150,80,150]);
@@ -556,13 +596,13 @@ $('#rondaBuscar').onclick=()=>{
   const box=$('#rondaRes');
   if(!k){
     const ps=passByPlate(p);
-    if(ps){const h=users.get(ps.uid)||{};const o={nombre:h.nombre||'',unidad:h.unidad||'',telefono:h.telefono||''};box.innerHTML=ronCard('vis','🎟️ VISITA',p,o,`Visita: ${esc(ps.visitante)} · ${left(ps.expira)}`);wireRonda(p,o);return}
+    if(ps){const h=users.get(ps.uid)||{};const o={nombre:h.nombre||'',unidad:h.unidad||'',telefono:h.telefono||''};box.innerHTML=ronCard('vis','VISITA',p,o,`Visita: ${esc(ps.visitante)} · ${left(ps.expira)}`);wireRonda(p,o);return}
     const n=nearPlate(p);
-    box.innerHTML=`<div class="res bad new"><div class="bn">⛔ NO REGISTRADO</div><div class="bd"><div style="text-align:center"><span class="plate">${esc(fmtPlate(p))}</span></div><p class="muted" style="text-align:center">No está en la base de datos.${n?` ¿Será ${esc(fmtPlate(n))}?`:''}</p><button class="btn bad" style="width:100%" id="ronLog">Registrar vehículo desconocido</button></div></div>`;
+    box.innerHTML=`<div class="res bad new"><div class="bn">NO REGISTRADO</div><div class="bd"><div style="text-align:center"><span class="plate">${esc(fmtPlate(p))}</span></div><p class="muted" style="text-align:center">No está en la base de datos.${n?` ¿Será ${esc(fmtPlate(n))}?`:''}</p><button class="btn bad" style="width:100%" id="ronLog">Registrar vehículo desconocido</button></div></div>`;
     $('#ronLog').onclick=()=>addLog({tipo:'aviso',tablilla:p,nota:'Vehículo desconocido (ronda)'});return;
   }
   const v=vehicles.get(k),o=owner(v);
-  box.innerHTML=ronCard('ok','🚗 '+esc(o.unidad||'Residente'),k,o,esc([v.marca,v.modelo,v.color].filter(Boolean).join(' · ')));
+  box.innerHTML=ronCard('ok',esc(o.unidad||'Residente'),k,o,esc([v.marca,v.modelo,v.color].filter(Boolean).join(' · ')));
   wireRonda(k,o);
 };
 $('#rondaIn').onkeydown=e=>{if(e.key==='Enter')$('#rondaBuscar').click()};
