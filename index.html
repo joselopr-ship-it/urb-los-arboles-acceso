@@ -93,8 +93,8 @@ a{color:var(--blue)}
 .scan{position:fixed;inset:0;background:#000;z-index:30;display:none;flex-direction:column}
 .scan.open{display:flex}
 .scan video{flex:1;width:100%;object-fit:cover;min-height:0}
-.scan .guide{position:absolute;left:8%;right:8%;top:36%;height:20%;border:3px solid var(--ok);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
-.scan .st{position:absolute;left:0;right:0;top:calc(36% - 56px);text-align:center;color:#fff;font-weight:700;font-size:20px;text-shadow:0 1px 3px #000;padding:0 12px}
+.scan .guide{position:absolute;left:50%;transform:translateX(-50%);width:min(84vw,560px);aspect-ratio:2/1;top:30%;border:3px solid var(--ok);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
+.scan .st{position:absolute;left:0;right:0;top:calc(30% - 60px);text-align:center;color:#fff;font-weight:700;font-size:20px;text-shadow:0 1px 3px #000;padding:0 12px}
 .scan .bar{display:flex;gap:10px;padding:14px 14px 24px;background:var(--navy)}
 .scan .bar .btn.sec{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
 header .row{flex:0 0 auto;gap:14px!important}header .row>*{flex:none}
@@ -630,10 +630,10 @@ function plateFrom(txt){
   const raw=norm(txt);if(raw.length<4)return null;
   const known=[...vehicles.keys(),...[...activePasses.values()].map(p=>norm(p.tablilla)).filter(Boolean)];
   let pr=null,ps=99;
-  const TOWER='A4I1L2Z7TJHXYV';/* la garita de El Morro entre letras y números se lee como uno o dos caracteres */
+  const TOWER='0123456789AILTJHXYVZ';/* la garita de El Morro entre letras y números se lee como uno o dos caracteres */
   const tryW=(w,bonus)=>{const c=[...w.slice(0,3)].map(ch=>N2L[ch]||ch).join('')+[...w.slice(3)].map(ch=>L2N[ch]||ch).join('');if(/^[A-Z]{3}\d{3}$/.test(c)){let sc=bonus;for(let j=0;j<6;j++)if(c[j]!==w[j])sc++;if(known.includes(c))sc-=10;if(sc<ps){ps=sc;pr=c}}};
   for(let i=0;i+6<=raw.length;i++)tryW(raw.slice(i,i+6),0);
-  for(const g of [1,2])for(let i=0;i+6+g<=raw.length;i++){const mid=raw.slice(i+3,i+3+g);if([...mid].every(ch=>TOWER.includes(ch)))tryW(raw.slice(i,i+3)+raw.slice(i+3+g,i+6+g),g===2?-0.6:-0.5)}
+  for(const g of [1,2])for(let i=0;i+6+g<=raw.length;i++){const mid=raw.slice(i+3,i+3+g);if([...mid].every(ch=>TOWER.includes(ch)))tryW(raw.slice(i,i+3)+raw.slice(i+3+g,i+6+g),g===2?-0.4:-0.5)}
   if(pr)return{p:pr,known:known.includes(pr)};
   let best=null,bd=9;for(const k of known){for(let i=0;i+k.length<=raw.length;i++){const d=dist(raw.slice(i,i+k.length),k);if(d<bd){bd=d;best=k}}}
   if(best&&bd<=1)return{p:best,known:true};
@@ -667,7 +667,7 @@ async function scanFrame(manual){
       const {data}=await ocrWorker.recognize(cv);
       const res=plateFrom(data.text);
       if(res){
-        $('#scanSt').textContent='Leyendo: '+fmtPlate(res.p);
+        $('#scanSt').textContent='Leyendo: '+fmtPlate(res.p)+'  ·  '+norm(data.text);
         scanVotes[res.p]=(scanVotes[res.p]||0)+1;
         if(res.known||scanVotes[res.p]>=2||manual){const p=res.p;closeScanner();navigator.vibrate&&navigator.vibrate(60);scanCb&&scanCb(p)}
       } else if(manual){$('#scanSt').textContent='No se pudo leer. Acércate o escribe la tablilla.'}
