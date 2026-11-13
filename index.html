@@ -630,7 +630,10 @@ function plateFrom(txt){
   const raw=norm(txt);if(raw.length<4)return null;
   const known=[...vehicles.keys(),...[...activePasses.values()].map(p=>norm(p.tablilla)).filter(Boolean)];
   let pr=null,ps=99;
-  for(let i=0;i+6<=raw.length;i++){const w=raw.slice(i,i+6);const c=[...w.slice(0,3)].map(ch=>N2L[ch]||ch).join('')+[...w.slice(3)].map(ch=>L2N[ch]||ch).join('');if(/^[A-Z]{3}\d{3}$/.test(c)){let sc=0;for(let j=0;j<6;j++)if(c[j]!==w[j])sc++;if(known.includes(c))sc-=10;if(sc<ps){ps=sc;pr=c}}}
+  const TOWER='A4I1L2Z7TJHXYV';/* la garita de El Morro entre letras y números se lee como uno o dos caracteres */
+  const tryW=(w,bonus)=>{const c=[...w.slice(0,3)].map(ch=>N2L[ch]||ch).join('')+[...w.slice(3)].map(ch=>L2N[ch]||ch).join('');if(/^[A-Z]{3}\d{3}$/.test(c)){let sc=bonus;for(let j=0;j<6;j++)if(c[j]!==w[j])sc++;if(known.includes(c))sc-=10;if(sc<ps){ps=sc;pr=c}}};
+  for(let i=0;i+6<=raw.length;i++)tryW(raw.slice(i,i+6),0);
+  for(const g of [1,2])for(let i=0;i+6+g<=raw.length;i++){const mid=raw.slice(i+3,i+3+g);if([...mid].every(ch=>TOWER.includes(ch)))tryW(raw.slice(i,i+3)+raw.slice(i+3+g,i+6+g),g===2?-0.6:-0.5)}
   if(pr)return{p:pr,known:known.includes(pr)};
   let best=null,bd=9;for(const k of known){for(let i=0;i+k.length<=raw.length;i++){const d=dist(raw.slice(i,i+k.length),k);if(d<bd){bd=d;best=k}}}
   if(best&&bd<=1)return{p:best,known:true};
